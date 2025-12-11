@@ -1,0 +1,199 @@
+// lib/api/services/auth.service.ts - COMPLETE
+import { encryptedApiClient } from "../encrypted-client";
+import { API_ENDPOINTS } from "../endpoints";
+import Cookies from "js-cookie";
+
+export interface RegisterPayload {
+  email: string;
+  password: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface CreateAgencyPayload {
+  name: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  timezone?: string;
+  industry?: string;
+  metadata?: any;
+}
+
+export interface CreateBrandPayload {
+  name: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  website?: string;
+  industry?: string;
+  metadata?: any;
+}
+
+export interface CreateCreatorPayload {
+  firstName: string;
+  lastName: string;
+  stageName?: string;
+  phone?: string;
+  metadata?: any;
+  bio?: string;
+}
+
+export interface VerifyRegistrationPayload {
+  email: string;
+  code: string;
+}
+
+export interface RefreshTokenPayload {
+  refreshToken: string;
+}
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ResetPasswordPayload {
+  token: string;
+  newPassword: string;
+}
+
+export interface SendInvitePayload {
+  inviteeEmail: string;
+  inviteeName: string;
+  inviteeType: "staff" | "brand" | "creator" | "manager";
+  roleId: number;
+  invitationMessage?: string;
+}
+
+export interface AcceptInvitePayload {
+  token: string;
+  firstName?: string;
+  lastName?: string;
+  password: string;
+}
+
+export interface ResendInvitePayload {
+  invitationId: number;
+}
+
+export class AuthService {
+  // Register
+  static async register(payload: RegisterPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.REGISTER, payload);
+  }
+
+  // Login
+  static async login(payload: LoginPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload);
+  }
+
+  // Verify Registration
+  static async verifyRegistration(payload: VerifyRegistrationPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.VERIFY_REGISTRATION, payload);
+  }
+
+  // Resend Verification
+  static async resendVerification(email: string) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION, { email });
+  }
+
+  // Refresh Token
+  static async refreshToken(refreshToken: string) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN, { refreshToken });
+  }
+
+  // Get Current User
+  static async getCurrentUser() {
+    return encryptedApiClient.get(API_ENDPOINTS.AUTH.ME);
+  }
+
+  // Forgot Password
+  static async forgotPassword(payload: ForgotPasswordPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.PASSWORD_RESET_REQUEST, payload);
+  }
+
+  // Reset Password
+  static async resetPassword(payload: ResetPasswordPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.PASSWORD_RESET_CONFIRM, payload);
+  }
+
+  // Create Agency
+  static async createAgency(payload: CreateAgencyPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.CREATE_AGENCY, payload);
+  }
+
+  // Create Brand
+  static async createBrand(payload: CreateBrandPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.CREATE_BRAND, payload);
+  }
+
+  // Create Creator
+  static async createCreator(payload: CreateCreatorPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.CREATE_CREATOR, payload);
+  }
+
+  // Get User Sessions
+  static async getUserSessions() {
+    return encryptedApiClient.get(API_ENDPOINTS.AUTH.SESSIONS);
+  }
+
+  // Send Invite
+  static async sendInvite(payload: SendInvitePayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.INVITE_SEND, payload);
+  }
+
+  // Accept Invite
+  static async acceptInvite(payload: AcceptInvitePayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.INVITE_ACCEPT, payload);
+  }
+
+  // Resend Invite
+  static async resendInvite(invitationId: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.INVITE_RESEND, { invitationId });
+  }
+
+  // Cancel Invite
+  static async cancelInvite(invitationId: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.INVITE_CANCEL, { invitationId });
+  }
+
+  // Logout
+  static async logout() {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+  }
+
+  static updateAuthCookies(data: { accessToken?: string; refreshToken?: string; user?: any }) {
+    const cookieOptions = {
+      expires: 7,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      path: "/"
+    };
+
+    if (data.accessToken) {
+      Cookies.set("accessToken", data.accessToken, cookieOptions);
+      console.log("✅ Access token cookie set");
+    }
+
+    if (data.refreshToken) {
+      Cookies.set("refreshToken", data.refreshToken, cookieOptions);
+      console.log("✅ Refresh token cookie set");
+    }
+
+    if (data.user) {
+      // ✅ Ensure tenantId is included in user object
+      const userWithTenant = {
+        ...data.user,
+        tenantId: data.user.tenantId, // ✅ Explicitly preserve tenantId
+        onboardingRequired: false,
+        onboardingCompleted: true
+      };
+
+      Cookies.set("user", JSON.stringify(userWithTenant), cookieOptions);
+      console.log("✅ User cookie set with tenantId:", userWithTenant.tenantId);
+    }
+  }
+}
