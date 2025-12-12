@@ -181,6 +181,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ attachment, onRemove }) => {
 
 interface RichTextEditorProps {
   placeholder?: string;
+  onSendMessageWS?: (data: any) => Promise<boolean>; // ✅ ADD THIS
   onSend?: (
     html: string,
     text: string,
@@ -209,6 +210,7 @@ export function RichTextEditor({
   onTypingStop,
   teamMembers = [],
   className,
+  onSendMessageWS,
   channelId
 }: RichTextEditorProps) {
   const [isSending, setIsSending] = useState(false);
@@ -371,7 +373,7 @@ export function RichTextEditor({
     const maxFileSize = 100 * 1024 * 1024; // 100MB
     const newAttachments: FileAttachment[] = [];
 
-    const addFile = (file: File |any) => {
+    const addFile = (file: File | any) => {
       // Basic validation
       if (file.size > maxFileSize) {
         toast.error(`${file.name} is too large. Max size is 100MB.`);
@@ -404,8 +406,18 @@ export function RichTextEditor({
   }, [attachments]);
 
   // ✅ Send ALL files as ONE message with multiple attachments
+
   const sendFilesAsOneMessage = useCallback(async (): Promise<boolean> => {
-    if (!channelId || attachments.length === 0) return true;
+    if (!channelId || attachments.length === 0) {
+      console.warn("⚠️ No channel or no attachments");
+      return true;
+    }
+
+    console.log("📎 Starting file upload...", {
+      channelId,
+      fileCount: attachments.length,
+      files: attachments.map(a => ({ name: a.file.name, size: a.file.size }))
+    });
 
     setIsUploading(true);
     setAttachments((prev) => prev.map((a) => ({ ...a, uploading: true, progress: 0 })));
@@ -413,6 +425,8 @@ export function RichTextEditor({
     try {
       const files = attachments.map((a) => a.file);
       const caption = editor?.getText().trim() || "";
+
+      console.log("📤 Calling ChatService.sendFilesAsOneMessage...");
 
       // ✅ API call - creates message in DB
       const message = await ChatService.sendFilesAsOneMessage(
@@ -423,20 +437,26 @@ export function RichTextEditor({
           replyToMessageId: replyingTo ? parseInt(replyingTo.id) : undefined
         },
         (progress: FileUploadProgress) => {
+          console.log(`📊 Upload progress: ${progress.percentage}%`);
           setAttachments((prev) => prev.map((a) => ({ ...a, progress: progress.percentage })));
         }
       );
+
+      console.log("✅ File upload successful:", message);
 
       setAttachments((prev) =>
         prev.map((a) => ({ ...a, uploading: false, sent: true, progress: 100 }))
       );
 
-      // ✅ REMOVED: Don't call sendMessageWS - backend will broadcast via WebSocket gateway
-      // The message is already created in DB and will be broadcasted automatically
+      // ✅ CRITICAL: Call onFileSent to add message to Redux
+      // Backend broadcasts via WebSocket, but we need immediate local update
+      if (onFileSent) {
+        console.log("🔄 Calling onFileSent callback...");
+        onFileSent(message);
+      } else {
+        console.warn("⚠️ onFileSent callback not provided!");
+      }
 
-      onFileSent?.(message);
-
-      console.log("✅ Files sent as one message:", message);
       return true;
     } catch (error: any) {
       console.error("❌ Failed to send files:", error);
@@ -447,45 +467,59 @@ export function RichTextEditor({
           error: error?.message || "Failed"
         }))
       );
-      toast.error("Failed to send files");
+      toast.error(error?.message || "Failed to send files");
       return false;
     } finally {
       setIsUploading(false);
     }
-  }, [channelId, attachments, editor, replyingTo, onFileSent]);
+  }, [channelId, attachments, editor, replyingTo, onFileSent]); // ✅ Added onFileSent
 
-  // ✅ Update handleSend to use the new function
+  // ✅ FIXED: Updated handleSend
   const handleSend = useCallback(async () => {
-    if (!editor || disabled || isSending || isUploading) return;
+    if (!editor || disabled || isSending || isUploading) {
+      console.log("⚠️ Cannot send:", { disabled, isSending, isUploading });
+      return;
+    }
 
     const html = editor.getHTML();
     const plainText = editor.getText().trim();
     const hasFiles = attachments.length > 0;
     const hasText = plainText.length > 0;
 
+    console.log("📤 handleSend called:", { hasFiles, hasText, fileCount: attachments.length });
+
     // Nothing to send
-    if (!hasText && !hasFiles) return;
+    if (!hasText && !hasFiles) {
+      console.log("⚠️ Nothing to send");
+      return;
+    }
 
     setIsSending(true);
 
     try {
       // ✅ If we have files, send them ALL as ONE message
       if (hasFiles && channelId) {
+        console.log("📎 Sending files as message...");
         const success = await sendFilesAsOneMessage();
 
         if (success) {
+          console.log("✅ Files sent, clearing editor...");
           editor.commands.clearContent();
           attachments.forEach((a) => URL.revokeObjectURL(a.preview));
           setAttachments([]);
           onClearReply?.();
+        } else {
+          console.error("❌ File send failed");
         }
       }
       // ✅ Text only message (no files)
       else if (hasText && !hasFiles) {
+        console.log("💬 Sending text message...");
         const mentions = extractMentions();
         const result = await onSend?.(html, plainText, mentions, undefined);
 
         if (result !== false) {
+          console.log("✅ Text message sent");
           editor.commands.clearContent();
           onClearReply?.();
         }
@@ -495,6 +529,8 @@ export function RichTextEditor({
         onTypingStop?.();
         setIsTyping(false);
       }
+    } catch (error) {
+      console.error("❌ handleSend error:", error);
     } finally {
       setIsSending(false);
     }
@@ -512,7 +548,6 @@ export function RichTextEditor({
     onTypingStop,
     onClearReply
   ]);
-
   const insertEmoji = useCallback(
     (emoji: string) => {
       editor?.chain().focus().insertContent(emoji).run();

@@ -84,7 +84,6 @@ export function HeaderToolbar() {
 
   return (
     <nav className="flex items-center gap-2">
-      <Notifications /> 
 
       {/* <Button mode="icon" variant="ghost" onClick={toggleTheme}>
         {theme === "light" ? <Moon /> : <Sun />}

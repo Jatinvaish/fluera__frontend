@@ -527,46 +527,27 @@ export class ChatService {
    */
   static async uploadMultipleMessageFiles(
     files: File[],
-    messageId?: number,
-    onProgress?: (progress: FileUploadProgress) => void
-  ): Promise<UploadedFile[]> {
-    const formData = new FormData();
+    messageId?: number
+  ): Promise<Array<{ attachmentId: number; fileUrl: string; fileName: string }>> {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append('files', file));
+      if (messageId) formData.append('messageId', messageId.toString());
 
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
+      const response = await axios.post('/chat/messages/upload-multiple', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-    if (messageId) {
-      formData.append("messageId", messageId.toString());
+      return response.data.data.map((item: any) => ({
+        attachmentId: item.attachmentId,
+        fileUrl: item.fileUrl,
+        fileName: item.fileName,
+      }));
+    } catch (error: any) {
+      console.error('Failed to upload files:', error);
+      throw new Error(error?.response?.data?.message || 'Failed to upload files');
     }
-
-    const token = Cookies.get("accessToken");
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3060/api/v1";
-
-    const response = await axios.post(
-      `${baseURL}${API_ENDPOINTS.CHAT.MESSAGES.UPLOAD_MULTIPLE}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        onUploadProgress: (progressEvent) => {
-          if (onProgress && progressEvent.total) {
-            const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            onProgress({
-              loaded: progressEvent.loaded,
-              total: progressEvent.total,
-              percentage
-            });
-          }
-        }
-      }
-    );
-
-    return extractData(response.data);
   }
-
   /**
    * ✅ Get file download URL
    */

@@ -244,10 +244,10 @@ const ChatPage = () => {
       parentId: msg.reply_to_message_id?.toString(),
       replyTo: msg.reply_to_message_id
         ? {
-            messageId: msg.reply_to_message_id.toString(),
-            authorName: msg.reply_sender_first_name + " " + msg.reply_sender_last_name || "User",
-            content: msg.reply_message_content || "Previous message"
-          }
+          messageId: msg.reply_to_message_id.toString(),
+          authorName: msg.reply_sender_first_name + " " + msg.reply_sender_last_name || "User",
+          content: msg.reply_message_content || "Previous message"
+        }
         : undefined,
       is_sent: true,
       is_delivered: (msg.delivered_count || 0) > 0,
@@ -359,11 +359,11 @@ const ChatPage = () => {
 
   const currentUserForSidebar = currentUser
     ? {
-        id: currentUser.id.toString(),
-        name: `${currentUser.firstName} ${currentUser.lastName}`,
-        email: currentUser.email,
-        status: "active" as const
-      }
+      id: currentUser.id.toString(),
+      name: `${currentUser.firstName} ${currentUser.lastName}`,
+      email: currentUser.email,
+      status: "active" as const
+    }
     : undefined;
 
   const availableUsersForDM = teamMembers
@@ -963,7 +963,7 @@ const ChatPage = () => {
           availableUsers={availableUsersForDM}
           onCreateChannel={handleCreateChannel}
           onStartDirectMessage={handleStartDirectMessage}
-          onStatusChange={() => {}}
+          onStatusChange={() => { }}
           onMenuClick={() => setIsPrimarySidebarOpen(true)}
         />
       </div>
@@ -1046,20 +1046,11 @@ const ChatPage = () => {
               );
             })()}
 
-            {/* ✅ Updated RichTextEditor with file upload support */}
-            {/* <RichTextEditor
-              onSend={handleSendMessage}
-              replyingTo={replyingTo}
-              onClearReply={() => setReplyingTo(null)}
-              onTypingStart={handleTypingStart}
-              onTypingStop={handleTypingStop}
-              placeholder={`Message ${isDirect ? currentChannelDisplayName : "#" + currentChannelDisplayName}`}
-              teamMembers={teamMembersForMentions}
-              disabled={!isConnected}
-            /> */}
+
             <RichTextEditor
               onSend={handleSendMessage}
-              onFileSent={handleFileSent} // ✅ NEW PROP
+              onSendMessageWS={sendMessageWS} // ✅ ADD THIS
+              onFileSent={handleFileSent}
               replyingTo={replyingTo}
               onClearReply={() => setReplyingTo(null)}
               onTypingStart={handleTypingStart}
@@ -1067,7 +1058,7 @@ const ChatPage = () => {
               placeholder={`Message ${isDirect ? currentChannelDisplayName : "#" + currentChannelDisplayName}`}
               teamMembers={teamMembersForMentions}
               disabled={!isConnected}
-              channelId={selectedChannel?.id} // ✅ ADD THIS
+              channelId={selectedChannel?.id}
             />
           </>
         ) : (
@@ -1114,9 +1105,9 @@ const ChatPage = () => {
           onInviteClick={
             isChannelAdmin && !isDirect
               ? () => {
-                  setMembersDialogOpen(false);
-                  setInviteDialogOpen(true);
-                }
+                setMembersDialogOpen(false);
+                setInviteDialogOpen(true);
+              }
               : undefined
           }
         />

@@ -1,4 +1,4 @@
-// hooks/useWebSocket.ts - FIXED: Properly send HTML content
+// hooks/useWebSocket.ts -  
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { io, Socket } from "socket.io-client";
@@ -297,7 +297,6 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
     };
   }, [token, userId, dispatch]);
 
-  // ✅ FIXED: Send HTML content properly
   const sendMessage = useCallback(async (data: SendMessagePayload): Promise<boolean> => {
     if (!socketRef.current?.connected) {
       console.warn("⚠️ Socket not connected");
@@ -305,10 +304,9 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
     }
 
     return new Promise((resolve) => {
-      // ✅ Log the exact payload being sent
       const payload = {
         channelId: data.channelId,
-        content: data.content, // ✅ This should be HTML from rich text editor
+        content: data.content,
         messageType: data.messageType || "text",
         mentions: data.mentions,
         replyToMessageId: data.replyToMessageId,
