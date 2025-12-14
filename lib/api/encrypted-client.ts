@@ -88,11 +88,10 @@ class EncryptedApiClient {
     this.client.interceptors.request.use(
       async (config) => {
         // Get fresh token from cookies for each request
-        const token =
-          Cookies.get('accessToken') ||
-          (typeof window !== 'undefined'
-            ? localStorage.getItem('accessToken')
-            : null); const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const token = Cookies.get('accessToken') || 
+          (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
+        
+        const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -341,9 +340,10 @@ class EncryptedApiClient {
         .update(components.join('|'))
         .digest('hex');
 
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
       Cookies.set('device_fingerprint', newFingerprint, {
         expires: 365,
-        secure: process.env.NODE_ENV === 'production',
+        secure: isHttps,
         sameSite: 'lax',
       });
 
@@ -355,9 +355,10 @@ class EncryptedApiClient {
   }
 
   private setTokens(accessToken: string, refreshToken: string) {
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const cookieOptions = {
       expires: 7,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isHttps,
       sameSite: 'lax' as const,
       path: '/',
     };
@@ -365,7 +366,7 @@ class EncryptedApiClient {
     Cookies.set('accessToken', accessToken, cookieOptions);
     Cookies.set('refreshToken', refreshToken, cookieOptions);
 
-    console.log('✅ Tokens updated in cookies');
+    console.log('✅ Tokens updated in cookies', { secure: isHttps });
   }
 
   private handleLogout() {
@@ -377,9 +378,9 @@ class EncryptedApiClient {
     this.userSession.channelKeys.clear();
     this.userSession.userId = undefined;
 
-    Cookies.remove('accessToken', { path: '/' });
-    Cookies.remove('refreshToken', { path: '/' });
-    Cookies.remove('user', { path: '/' });
+    Cookies.remove('accessToken', { path: '/', domain: undefined });
+    Cookies.remove('refreshToken', { path: '/', domain: undefined });
+    Cookies.remove('user', { path: '/', domain: undefined });
 
     console.log('✅ All sensitive data cleared from memory');
 
