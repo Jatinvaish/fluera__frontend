@@ -167,16 +167,20 @@ export class AuthService {
 
   static updateAuthCookies(data: { accessToken?: string; refreshToken?: string; user?: any }) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const cookieOptions = {
+    const cookieOptions: any = {
       expires: 7,
-      secure: isHttps,
-      sameSite: "lax" as const,
       path: "/"
     };
 
+    // Only set secure flag for HTTPS
+    if (isHttps) {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = "lax";
+    }
+
     if (data.accessToken) {
       Cookies.set("accessToken", data.accessToken, cookieOptions);
-      console.log("✅ Access token cookie set", { secure: isHttps });
+      console.log("✅ Access token cookie set", { secure: isHttps, token: data.accessToken.substring(0, 20) + '...' });
     }
 
     if (data.refreshToken) {
@@ -185,10 +189,9 @@ export class AuthService {
     }
 
     if (data.user) {
-      // ✅ Ensure tenantId is included in user object
       const userWithTenant = {
         ...data.user,
-        tenantId: data.user.tenantId, // ✅ Explicitly preserve tenantId
+        tenantId: data.user.tenantId,
         onboardingRequired: false,
         onboardingCompleted: true
       };

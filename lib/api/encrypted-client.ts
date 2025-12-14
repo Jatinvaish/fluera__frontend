@@ -341,11 +341,15 @@ class EncryptedApiClient {
         .digest('hex');
 
       const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-      Cookies.set('device_fingerprint', newFingerprint, {
+      const fpOptions: any = {
         expires: 365,
-        secure: isHttps,
-        sameSite: 'lax',
-      });
+        path: '/'
+      };
+      if (isHttps) {
+        fpOptions.secure = true;
+        fpOptions.sameSite = 'lax';
+      }
+      Cookies.set('device_fingerprint', newFingerprint, fpOptions);
 
       return newFingerprint;
     } catch (error) {
@@ -356,12 +360,16 @@ class EncryptedApiClient {
 
   private setTokens(accessToken: string, refreshToken: string) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const cookieOptions = {
+    const cookieOptions: any = {
       expires: 7,
-      secure: isHttps,
-      sameSite: 'lax' as const,
       path: '/',
     };
+
+    // Only set secure and sameSite for HTTPS
+    if (isHttps) {
+      cookieOptions.secure = true;
+      cookieOptions.sameSite = 'lax';
+    }
 
     Cookies.set('accessToken', accessToken, cookieOptions);
     Cookies.set('refreshToken', refreshToken, cookieOptions);
