@@ -134,7 +134,7 @@ export const uploadMessageFile = createAsyncThunk<
 );
 
 export const uploadMultipleMessageFiles = createAsyncThunk<
-  UploadedFile[],
+  Array<{ attachmentId: number; fileUrl: string; fileName: string }>,
   { files: File[]; messageId?: number },
   { rejectValue: string }
 >(
