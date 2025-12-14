@@ -59,19 +59,19 @@ class EncryptedApiClient {
     setInterval(async () => {
       const accessToken = Cookies.get('accessToken');
       const refreshToken = Cookies.get('refreshToken');
-      
+
       if (!accessToken || !refreshToken) return;
-      
+
       try {
         // Decode token to check expiry (without verification)
         const tokenParts = accessToken.split('.');
         if (tokenParts.length !== 3) return;
-        
+
         const payload = JSON.parse(atob(tokenParts[1]));
         const expiryTime = payload.exp * 1000; // Convert to milliseconds
         const currentTime = Date.now();
         const timeUntilExpiry = expiryTime - currentTime;
-        
+
         // Refresh if less than 2 minutes until expiry
         if (timeUntilExpiry < 120000 && timeUntilExpiry > 0) {
           console.log('🔄 Proactive token refresh triggered');
@@ -88,8 +88,11 @@ class EncryptedApiClient {
     this.client.interceptors.request.use(
       async (config) => {
         // Get fresh token from cookies for each request
-        const token = Cookies.get('accessToken');
-        const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const token =
+          Cookies.get('accessToken') ||
+          (typeof window !== 'undefined'
+            ? localStorage.getItem('accessToken')
+            : null); const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -193,7 +196,7 @@ class EncryptedApiClient {
 
           try {
             const refreshToken = Cookies.get('refreshToken');
-            
+
             if (!refreshToken) {
               throw new Error('No refresh token available');
             }
@@ -214,13 +217,13 @@ class EncryptedApiClient {
             return this.client(originalRequest);
           } catch (refreshError) {
             console.error('Token refresh failed:', refreshError);
-            
+
             // Reject all queued requests
             this.refreshQueue.forEach((promise) => {
               promise.reject(refreshError);
             });
             this.refreshQueue = [];
-            
+
             this.handleLogout();
             return Promise.reject(refreshError);
           } finally {
@@ -255,7 +258,7 @@ class EncryptedApiClient {
 
       const data = response.data;
       console.log(`[${requestId}] ✅ Token refreshed successfully`);
-      
+
       // Return tokens
       return {
         accessToken: data.accessToken || data.data?.accessToken,
