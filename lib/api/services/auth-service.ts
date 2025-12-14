@@ -167,37 +167,18 @@ export class AuthService {
 
   static updateAuthCookies(data: { accessToken?: string; refreshToken?: string; user?: any }) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const cookieOptions: any = {
-      expires: 7,
-      path: "/"
-    };
-
-    // Only set secure flag for HTTPS
+    const cookieOptions: any = { expires: 7, path: "/" };
     if (isHttps) {
       cookieOptions.secure = true;
       cookieOptions.sameSite = "lax";
     }
 
-    if (data.accessToken) {
+    if (data.accessToken && data.refreshToken && data.user) {
+      const userWithTenant = { ...data.user, tenantId: data.user.tenantId, onboardingRequired: false, onboardingCompleted: true };
       Cookies.set("accessToken", data.accessToken, cookieOptions);
-      console.log("✅ Access token cookie set", { secure: isHttps, token: data.accessToken.substring(0, 20) + '...' });
-    }
-
-    if (data.refreshToken) {
       Cookies.set("refreshToken", data.refreshToken, cookieOptions);
-      console.log("✅ Refresh token cookie set", { secure: isHttps });
-    }
-
-    if (data.user) {
-      const userWithTenant = {
-        ...data.user,
-        tenantId: data.user.tenantId,
-        onboardingRequired: false,
-        onboardingCompleted: true
-      };
-
       Cookies.set("user", JSON.stringify(userWithTenant), cookieOptions);
-      console.log("✅ User cookie set with tenantId:", userWithTenant.tenantId);
+      console.log("✅ All cookies set", { secure: isHttps });
     }
   }
 }

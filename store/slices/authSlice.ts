@@ -59,26 +59,11 @@ const initialState: AuthState = {
   loading: false
 };
 
+import { setAuthCookies } from "@/lib/utils/cookie-helper";
+
 // Helper: Store User & Tokens
 const storeAuthData = (user: User, accessToken: string, refreshToken: string) => {
-  Cookies.set("accessToken", accessToken, {
-    expires: 7,
-    path: "/",
-    secure: true,
-    sameSite: "strict"
-  });
-  Cookies.set("refreshToken", refreshToken, {
-    expires: 7,
-    path: "/",
-    secure: true,
-    sameSite: "strict"
-  });
-  Cookies.set("user", JSON.stringify(user), {
-    expires: 7,
-    path: "/",
-    secure: true,
-    sameSite: "strict"
-  });
+  setAuthCookies(accessToken, refreshToken, user);
 };
 
 function normalizeUserData(userData: any) {

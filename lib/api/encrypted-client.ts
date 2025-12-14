@@ -360,21 +360,14 @@ class EncryptedApiClient {
 
   private setTokens(accessToken: string, refreshToken: string) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const cookieOptions: any = {
-      expires: 7,
-      path: '/',
-    };
-
-    // Only set secure and sameSite for HTTPS
+    const cookieOptions: any = { expires: 7, path: '/' };
     if (isHttps) {
       cookieOptions.secure = true;
       cookieOptions.sameSite = 'lax';
     }
-
     Cookies.set('accessToken', accessToken, cookieOptions);
     Cookies.set('refreshToken', refreshToken, cookieOptions);
-
-    console.log('✅ Tokens updated in cookies', { secure: isHttps });
+    console.log('✅ Tokens updated', { secure: isHttps });
   }
 
   private handleLogout() {
