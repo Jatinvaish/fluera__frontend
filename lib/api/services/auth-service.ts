@@ -166,21 +166,22 @@ export class AuthService {
   }
 
   static updateAuthCookies(data: { accessToken?: string; refreshToken?: string; user?: any }) {
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const cookieOptions = {
       expires: 7,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       sameSite: "lax" as const,
       path: "/"
     };
 
     if (data.accessToken) {
       Cookies.set("accessToken", data.accessToken, cookieOptions);
-      console.log("✅ Access token cookie set");
+      console.log("✅ Access token cookie set", { secure: isHttps });
     }
 
     if (data.refreshToken) {
       Cookies.set("refreshToken", data.refreshToken, cookieOptions);
-      console.log("✅ Refresh token cookie set");
+      console.log("✅ Refresh token cookie set", { secure: isHttps });
     }
 
     if (data.user) {
