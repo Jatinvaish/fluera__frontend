@@ -153,24 +153,26 @@ export function Sidebar({
                       key={dm.id}
                       onClick={() => onDirectMessageClick?.(dm.id)}
                       className={cn(
-                        "hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                        "hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors overflow-hidden",
                         activeId === dm.id
                           ? "bg-sidebar-accent text-sidebar-accent-foreground"
                           : "text-sidebar-foreground"
                       )}>
-                      <div className="relative h-8 w-8 flex-shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold">
-                        {dm.name.charAt(0).toUpperCase()}
-                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-sidebar" />
+                      <div className="relative h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
+                        {dm.name?.charAt(0)?.toUpperCase() || '?'}
+                        <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-sidebar" />
                       </div>
-                      <div className="flex-1 min-w-0 text-left">
-                        <p className="font-medium truncate">{dm.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">Active now</p>
+                      <div className="flex-1 min-w-0 flex items-center justify-between">
+                        <div className="min-w-0 max-w-[130px]">
+                          <p className="font-medium truncate" title={dm.name}>{dm.name}</p>
+                          <p className="text-xs text-muted truncate text-left">Active now</p>
+                        </div>
+                        {dm.unread && dm.unread > 0 && (
+                          <span className="bg-background text-primary inline-flex h-5 min-w-[20px] flex-shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold ml-2">
+                            {dm.unread}
+                          </span>
+                        )}
                       </div>
-                      {dm.unread && dm.unread > 0 && (
-                        <span className="bg-background text-primary inline-flex h-5 min-w-[20px] flex-shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold">
-                          {dm.unread}
-                        </span>
-                      )}
                     </button>
                   ))
                 ) : (
@@ -207,11 +209,11 @@ export function Sidebar({
                           ? "bg-sidebar-accent text-sidebar-accent-foreground"
                           : "text-sidebar-foreground"
                       )}>
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-primary/10">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-muted">
                         {channel.isPrivate ? (
-                          <Lock className="h-4 w-4 text-primary" />
+                          <Lock className="h-4 w-4 text-muted-foreground" />
                         ) : (
-                          <Hash className="h-4 w-4 text-primary" />
+                          <Hash className="h-4 w-4 text-muted-foreground" />
                         )}
                       </div>
                       <span className="flex-1 truncate text-left font-medium">{channel.name}</span>
