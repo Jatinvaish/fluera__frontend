@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { PrimarySidebar } from "@/components/chat/primary-sidebar";
 import { Sidebar } from "@/components/chat/sidebar";
+import { ResizableSidebar } from "@/components/chat/resizable-sidebar";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { MessageList } from "@/components/chat/message-list";
 import { ThreadSidebar } from "@/components/chat/thread-sidebar";
@@ -952,20 +953,22 @@ const ChatPage = () => {
       />
 
       <div className={`${showSidebarOnMobile ? "flex" : "hidden"} md:flex`}>
-        <Sidebar
-          channels={sidebarChannels}
-          directMessages={sidebarDMs}
-          activeId={selectedChannel?.channel_id || selectedChannel?.id.toString()}
-          activeTab={activeTab}
-          onChannelClick={handleChannelClick}
-          onDirectMessageClick={handleChannelClick}
-          currentUser={currentUserForSidebar}
-          availableUsers={availableUsersForDM}
-          onCreateChannel={handleCreateChannel}
-          onStartDirectMessage={handleStartDirectMessage}
-          onStatusChange={() => { }}
-          onMenuClick={() => setIsPrimarySidebarOpen(true)}
-        />
+        <ResizableSidebar>
+          <Sidebar
+            channels={sidebarChannels}
+            directMessages={sidebarDMs}
+            activeId={selectedChannel?.channel_id || selectedChannel?.id.toString()}
+            activeTab={activeTab}
+            onChannelClick={handleChannelClick}
+            onDirectMessageClick={handleChannelClick}
+            currentUser={currentUserForSidebar}
+            availableUsers={availableUsersForDM}
+            onCreateChannel={handleCreateChannel}
+            onStartDirectMessage={handleStartDirectMessage}
+            onStatusChange={() => { }}
+            onMenuClick={() => setIsPrimarySidebarOpen(true)}
+          />
+        </ResizableSidebar>
       </div>
 
       <div

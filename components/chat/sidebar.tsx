@@ -98,7 +98,7 @@ export function Sidebar({
   };
 
   return (
-    <div className="bg-sidebar text-sidebar-foreground flex w-full md:w-72 flex-col overflow-hidden border-r border-border">
+    <div className="bg-sidebar text-sidebar-foreground flex w-full h-full flex-col overflow-hidden border-r border-border">
       {/* Header */}
       <div className="border-border flex h-14 flex-shrink-0 items-center border-b px-4 gap-3">
         <button
@@ -165,7 +165,7 @@ export function Sidebar({
                       <div className="flex-1 min-w-0 flex items-center justify-between">
                         <div className="min-w-0 max-w-[130px]">
                           <p className="font-medium truncate" title={dm.name}>{dm.name}</p>
-                          <p className="text-xs text-muted truncate text-left">Active now</p>
+                          <p className="text-xs text-muted-foreground truncate text-left">Active now</p>
                         </div>
                         {dm.unread && dm.unread > 0 && (
                           <span className="bg-background text-primary inline-flex h-5 min-w-[20px] flex-shrink-0 items-center justify-center rounded-full px-1.5 text-xs font-bold ml-2">
@@ -249,14 +249,14 @@ export function Sidebar({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-2 py-2 transition-colors">
-              <div className="bg-primary text-primary-foreground relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+              <div className="relative h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
                 {currentUser?.name?.charAt(0).toUpperCase() || "U"}
                 <span
                   className={cn(
                     "border-sidebar absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2",
-                    currentUser?.status === "active" && "bg-success",
-                    currentUser?.status === "away" && "bg-warning",
-                    (!currentUser?.status || currentUser?.status === "offline") && "bg-muted-foreground"
+                    currentUser?.status === "active" && "bg-green-500",
+                    currentUser?.status === "away" && "bg-yellow-500",
+                    (!currentUser?.status || currentUser?.status === "offline") && "bg-gray-400 dark:bg-gray-500"
                   )}
                 />
               </div>
