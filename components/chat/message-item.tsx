@@ -120,19 +120,20 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [signedUrl, setSignedUrl] = useState<string>("");
+
+  console.log('🟢 [MESSAGE-ITEM] FileAttachment render:', {
+    fileId: file.id,
+    fileName: file.name,
+    hasUrl: !!file.url,
+    url: file.url,
+    hasThumbnail: !!file.thumbnailUrl,
+    thumbnailUrl: file.thumbnailUrl,
+    mimeType: file.mimeType
+  });
 
   const isImage = file.mimeType?.startsWith("image/");
   const isVideo = file.mimeType?.startsWith("video/");
   const isPdf = file.mimeType?.includes("pdf");
-
-  useEffect(() => {
-    if (file.id && (isImage || isVideo)) {
-      ChatService.getFileDownloadUrl(file.id)
-        .then(info => setSignedUrl(info.url))
-        .catch(() => setImageError(true));
-    }
-  }, [file.id, isImage, isVideo]);
 
   const handleDownload = async () => {
     if (!file.id) {
@@ -160,25 +161,30 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
 
   // Image preview
   if (isImage && !imageError) {
+    const imgSrc = (file as any).url || file.url;
+    console.log('🟢 [MESSAGE-ITEM] Rendering image with src:', {
+      fileId: file.id,
+      imgSrc,
+      fromAnyUrl: !!(file as any).url,
+      fromFileUrl: !!file.url
+    });
     return (
       <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
-        {(!signedUrl || !isImageLoaded) && (
+        {!isImageLoaded && (
           <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
             <ImageIcon className="text-muted-foreground h-8 w-8" />
           </div>
         )}
-        {signedUrl && (
-          <img
-            src={signedUrl}
-            alt={file.name}
-            className={cn(
-              "w-full max-h-80 object-cover transition-opacity",
-              isImageLoaded ? "opacity-100" : "absolute opacity-0"
-            )}
-            onLoad={() => setIsImageLoaded(true)}
-            onError={() => setImageError(true)}
-          />
-        )}
+        <img
+          src={imgSrc}
+          alt={file.name}
+          className={cn(
+            "w-full max-h-80 object-cover transition-opacity",
+            isImageLoaded ? "opacity-100" : "absolute opacity-0"
+          )}
+          onLoad={() => setIsImageLoaded(true)}
+          onError={() => setImageError(true)}
+        />
         {isImageLoaded && (
           <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
             <p className="truncate text-xs text-white">{file.name}</p>
@@ -191,21 +197,20 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
 
   // Video preview
   if (isVideo) {
+    const videoSrc = (file as any).url || file.url;
+    console.log('🟢 [MESSAGE-ITEM] Rendering video with src:', {
+      fileId: file.id,
+      videoSrc,
+      fromAnyUrl: !!(file as any).url,
+      fromFileUrl: !!file.url
+    });
     return (
       <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
-        {!signedUrl ? (
-          <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
-            <Play className="text-muted-foreground h-8 w-8" />
-          </div>
-        ) : (
-          <>
-            <video src={signedUrl} className="w-full max-h-80 object-cover" />
-            <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-              <p className="truncate text-xs text-white">{file.name}</p>
-              <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
-            </div>
-          </>
-        )}
+        <video src={videoSrc} className="w-full max-h-80 object-cover" />
+        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+          <p className="truncate text-xs text-white">{file.name}</p>
+          <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
+        </div>
       </div>
     );
   }

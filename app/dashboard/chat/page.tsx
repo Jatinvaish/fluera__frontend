@@ -264,7 +264,7 @@ const ChatPage = () => {
           id: att.id,
           name: att.file_name || att.filename,
           size: att.file_size,
-          url: att.file_url, // This will be replaced with signed URL on preview
+          url: att.url || att.file_url,
           mimeType: att.mime_type || att.content_type,
           thumbnailUrl: att.thumbnail_url
         })) || []

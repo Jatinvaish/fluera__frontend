@@ -67,12 +67,14 @@ export function FilePreviewModal({
 
   useEffect(() => {
     if (open && currentFile) {
-      console.log('Modal opened with file:', {
+      console.log('🔵 [FILE-PREVIEW-MODAL] Modal opened with file:', {
         id: currentFile.id,
         name: currentFile.name,
         url: currentFile.url,
         thumbnailUrl: currentFile.thumbnailUrl,
-        mimeType: currentFile.mimeType
+        mimeType: currentFile.mimeType,
+        hasUrl: !!currentFile.url,
+        needsFetch: !currentFile.url && !!currentFile.id
       });
 
       setZoom(1);
@@ -81,11 +83,12 @@ export function FilePreviewModal({
       setImageLoadError(false);
       setIsLoading(true);
       
-      // Always try to fetch signed URL for files with ID
-      if (currentFile.id && !signedUrls[currentFile.id] && !urlFetchErrors[currentFile.id]) {
-        console.log('Fetching signed URL on mount for:', currentFile.id);
+      // Only fetch signed URL if url field is not present
+      if (!currentFile.url && currentFile.id && !signedUrls[currentFile.id] && !urlFetchErrors[currentFile.id]) {
+        console.log('🔵 [FILE-PREVIEW-MODAL] Fetching signed URL on mount for:', currentFile.id);
         fetchSignedUrl(currentFile.id);
-      } else if (currentFile.url || currentFile.thumbnailUrl) {
+      } else {
+        console.log('✅ [FILE-PREVIEW-MODAL] Skipping fetch - URL already available or cached');
         setIsLoading(false);
       }
     }
@@ -93,24 +96,25 @@ export function FilePreviewModal({
 
   const fetchSignedUrl = async (fileId: number) => {
     try {
-      console.log('fetchSignedUrl called for:', fileId);
+      console.log('🔵 [FILE-PREVIEW-MODAL] fetchSignedUrl called for:', fileId);
       setUrlFetchErrors(prev => ({ ...prev, [fileId]: false }));
       
       // Check cache first
       const cached = ChatService.getCachedSignedUrl(fileId);
       if (cached) {
-        console.log('Using cached URL for:', fileId, cached);
+        console.log('✅ [FILE-PREVIEW-MODAL] Using cached URL for:', fileId, cached);
         setSignedUrls(prev => ({ ...prev, [fileId]: cached }));
         setIsLoading(false);
         return;
       }
       
+      console.log('🔵 [FILE-PREVIEW-MODAL] Fetching from API for:', fileId);
       const downloadInfo = await ChatService.getFileDownloadUrl(fileId);
-      console.log('Fetched signed URL for:', fileId, downloadInfo.url);
+      console.log('✅ [FILE-PREVIEW-MODAL] Fetched signed URL for:', fileId, downloadInfo.url);
       setSignedUrls(prev => ({ ...prev, [fileId]: downloadInfo.url }));
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to get signed URL:', error);
+      console.error('❌ [FILE-PREVIEW-MODAL] Failed to get signed URL:', error);
       setUrlFetchErrors(prev => ({ ...prev, [fileId]: true }));
       setIsLoading(false);
       toast.error('Failed to load file URL');
@@ -118,21 +122,36 @@ export function FilePreviewModal({
   };
 
   const getFileUrl = (file: any) => {
-    // Prioritize signed URL for preview (has CORS headers)
-    if (file.id && signedUrls[file.id]) {
-      return signedUrls[file.id];
+    console.log('🔵 [FILE-PREVIEW-MODAL] getFileUrl called:', {
+      fileId: file.id,
+      fileName: file.name,
+      hasDirectUrl: !!file.url,
+      directUrl: file.url,
+      hasSignedUrl: !!(file.id && signedUrls[file.id]),
+      signedUrl: file.id ? signedUrls[file.id] : null,
+      hasThumbnail: !!file.thumbnailUrl,
+      thumbnailUrl: file.thumbnailUrl
+    });
+
+    // Use the url field from backend (already signed)
+    if (file.url) {
+      console.log('✅ [FILE-PREVIEW-MODAL] Using direct URL from backend:', file.url);
+      return file.url;
     }
     
-    // Fallback to direct URL (may have CORS issues)
-    if (file.url) {
-      return file.url;
+    // Fallback to fetched signed URL
+    if (file.id && signedUrls[file.id]) {
+      console.log('✅ [FILE-PREVIEW-MODAL] Using fetched signed URL:', signedUrls[file.id]);
+      return signedUrls[file.id];
     }
     
     // Last resort: thumbnail
     if (file.thumbnailUrl) {
+      console.log('⚠️ [FILE-PREVIEW-MODAL] Falling back to thumbnail:', file.thumbnailUrl);
       return file.thumbnailUrl;
     }
     
+    console.error('❌ [FILE-PREVIEW-MODAL] No URL available for file!');
     return '';
   };
 

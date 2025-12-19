@@ -565,9 +565,16 @@ export class ChatService {
    * ✅ Get file download URL with caching
    */
   static async getFileDownloadUrl(attachmentId: number): Promise<FileDownloadInfo> {
+    console.log('🔵 [CHAT-SERVICE] getFileDownloadUrl called for:', attachmentId);
+    
     // Check cache first
     const cached = this.signedUrlCache.get(attachmentId);
     if (cached && cached.expires > Date.now()) {
+      console.log('✅ [CHAT-SERVICE] Using cached signed URL:', {
+        attachmentId,
+        url: cached.url,
+        expiresIn: Math.round((cached.expires - Date.now()) / 1000) + 's'
+      });
       return {
         url: cached.url,
         fileName: '',
@@ -576,10 +583,17 @@ export class ChatService {
       };
     }
 
+    console.log('🔵 [CHAT-SERVICE] Fetching new signed URL from API for:', attachmentId);
     // Fetch new signed URL
     const result = extractData(
       await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.FILE_DOWNLOAD(attachmentId))
     );
+
+    console.log('✅ [CHAT-SERVICE] Received signed URL from API:', {
+      attachmentId,
+      url: result.url,
+      fileName: result.fileName
+    });
 
     // Cache the result
     this.signedUrlCache.set(attachmentId, {
@@ -605,11 +619,15 @@ export class ChatService {
   static getCachedSignedUrl(attachmentId: number): string | null {
     const cached = this.signedUrlCache.get(attachmentId);
     if (cached && cached.expires > Date.now()) {
+      console.log('✅ [CHAT-SERVICE] Cache hit for:', attachmentId, 'expires in', Math.round((cached.expires - Date.now()) / 1000) + 's');
       return cached.url;
     }
     // Clean up expired entry
     if (cached) {
+      console.log('⚠️ [CHAT-SERVICE] Cache expired for:', attachmentId);
       this.signedUrlCache.delete(attachmentId);
+    } else {
+      console.log('❌ [CHAT-SERVICE] Cache miss for:', attachmentId);
     }
     return null;
   }
@@ -768,10 +786,26 @@ export class ChatService {
   }
 
   static async getMessages(channelId: number, limit = 50, beforeId?: number): Promise<Message[]> {
+    console.log('🔵 [CHAT-SERVICE] getMessages called:', { channelId, limit, beforeId });
     const response = await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.LIST, {
       params: { channelId, limit, beforeId }
     });
     const messages = extractData<Message[]>(response);
+    console.log('✅ [CHAT-SERVICE] getMessages response:', {
+      messageCount: Array.isArray(messages) ? messages.length : 0,
+      messages: Array.isArray(messages) ? messages.map(m => ({
+        id: m.id,
+        hasAttachments: m.has_attachments,
+        attachmentCount: m.attachment_count,
+        attachments: m.attachments?.map(att => ({
+          id: att.id,
+          name: att.file_name,
+          file_url: att.file_url,
+          url: (att as any).url,
+          hasUrlField: !!(att as any).url
+        }))
+      })) : 'not an array'
+    });
     return Array.isArray(messages) ? messages : [];
   }
 
