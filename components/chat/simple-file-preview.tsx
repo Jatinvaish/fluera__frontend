@@ -63,10 +63,10 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
         <DialogHeader className="p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <FileTypeIcon 
-                mimeType={file.mimeType} 
-                fileName={file.name} 
-                className="h-6 w-6 text-primary flex-shrink-0" 
+              <FileTypeIcon
+                mimeType={file.mimeType}
+                fileName={file.name}
+                className="h-6 w-6 text-primary flex-shrink-0"
               />
               <div className="min-w-0">
                 <DialogTitle className="text-lg font-semibold text-foreground truncate">
@@ -83,9 +83,9 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
               </div>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleDownload}
                 disabled={isDownloading}
                 className="h-9 px-3"
@@ -103,7 +103,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="flex-1 overflow-auto relative">
           {isImage && (
             <div className="flex justify-center items-center h-full p-6">
@@ -115,8 +115,8 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
                   </div>
                 </div>
               )}
-              <img 
-                src={file.url} 
+              <img
+                src={file.url}
                 alt={file.name}
                 className="max-w-full max-h-full object-contain"
                 onLoad={() => setIsLoading(false)}
@@ -128,7 +128,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
               />
             </div>
           )}
-          
+
           {isVideo && (
             <div className="flex justify-center items-center h-full p-6">
               {isLoading && (
@@ -139,7 +139,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
                   </div>
                 </div>
               )}
-              <video 
+              <video
                 src={file.url}
                 controls
                 className="max-w-full max-h-full"
@@ -155,7 +155,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
               </video>
             </div>
           )}
-          
+
           {isPdf && (
             <iframe
               src={file.url}
@@ -166,7 +166,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
               }}
             />
           )}
-          
+
           {(!isImage && !isVideo && !isPdf) || hasError ? (
             <div className="flex flex-col items-center justify-center h-full p-8">
               <div className="bg-gradient-to-br from-muted/50 to-muted rounded-xl p-8 text-center max-w-md shadow-lg">
@@ -175,10 +175,10 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
                     {hasError ? (
                       <AlertCircle className="h-10 w-10 text-destructive" />
                     ) : (
-                      <FileTypeIcon 
-                        mimeType={file.mimeType} 
-                        fileName={file.name} 
-                        className="h-10 w-10 text-primary" 
+                      <FileTypeIcon
+                        mimeType={file.mimeType}
+                        fileName={file.name}
+                        className="h-10 w-10 text-primary"
                       />
                     )}
                   </div>
@@ -188,7 +188,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
                   {ChatService.formatFileSize(file.size)}
                 </p>
                 <p className="text-muted-foreground text-sm mb-6">
-                  {hasError 
+                  {hasError
                     ? 'Failed to load file preview. Download to view it on your device.'
                     : 'This file type cannot be previewed in the browser. Download to view it on your device.'
                   }
@@ -203,7 +203,7 @@ export function SimpleFilePreview({ open, onOpenChange, file }: SimpleFilePrevie
                 </Button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
