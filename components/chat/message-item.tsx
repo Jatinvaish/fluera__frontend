@@ -121,6 +121,16 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   const [imageError, setImageError] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  console.log('🟢 [MESSAGE-ITEM] FileAttachment render:', {
+    fileId: file.id,
+    fileName: file.name,
+    hasUrl: !!file.url,
+    url: file.url,
+    hasThumbnail: !!file.thumbnailUrl,
+    thumbnailUrl: file.thumbnailUrl,
+    mimeType: file.mimeType
+  });
+
   const isImage = file.mimeType?.startsWith("image/");
   const isVideo = file.mimeType?.startsWith("video/");
   const isPdf = file.mimeType?.includes("pdf");
@@ -151,50 +161,55 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
 
   // Image preview
   if (isImage && !imageError) {
+    const imgSrc = (file as any).url || file.url;
+    console.log('🟢 [MESSAGE-ITEM] Rendering image with src:', {
+      fileId: file.id,
+      imgSrc,
+      fromAnyUrl: !!(file as any).url,
+      fromFileUrl: !!file.url
+    });
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
+      <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         {!isImageLoaded && (
-          <div className="bg-muted flex h-32 w-48 animate-pulse items-center justify-center">
+          <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
             <ImageIcon className="text-muted-foreground h-8 w-8" />
           </div>
         )}
         <img
-          src={file.thumbnailUrl || file.url}
+          src={imgSrc}
           alt={file.name}
           className={cn(
-            "max-h-64 max-w-full object-contain transition-opacity",
+            "w-full max-h-80 object-cover transition-opacity",
             isImageLoaded ? "opacity-100" : "absolute opacity-0"
           )}
           onLoad={() => setIsImageLoaded(true)}
           onError={() => setImageError(true)}
         />
-        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-          <p className="truncate text-xs text-white">{file.name}</p>
-          <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
-        </div>
+        {isImageLoaded && (
+          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+            <p className="truncate text-xs text-white">{file.name}</p>
+            <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
+          </div>
+        )}
       </div>
     );
   }
 
   // Video preview
   if (isVideo) {
+    const videoSrc = (file as any).url || file.url;
+    console.log('🟢 [MESSAGE-ITEM] Rendering video with src:', {
+      fileId: file.id,
+      videoSrc,
+      fromAnyUrl: !!(file as any).url,
+      fromFileUrl: !!file.url
+    });
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
-        <div className="bg-muted relative flex h-32 w-48 items-center justify-center">
-          {file.thumbnailUrl ? (
-            <img src={file.thumbnailUrl} alt={file.name} className="h-full w-full object-cover" />
-          ) : (
-            <Play className="text-muted-foreground h-12 w-12" />
-          )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <Play className="h-10 w-10 fill-white text-white" />
-          </div>
-        </div>
-        <div className="bg-muted/50 p-2">
-          <p className="truncate text-xs font-medium">{file.name}</p>
-          <p className="text-muted-foreground text-[10px]">
-            {ChatService.formatFileSize(file.size)}
-          </p>
+      <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
+        <video src={videoSrc} className="w-full max-h-80 object-cover" />
+        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+          <p className="truncate text-xs text-white">{file.name}</p>
+          <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
         </div>
       </div>
     );

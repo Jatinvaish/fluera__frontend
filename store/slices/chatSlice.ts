@@ -812,6 +812,22 @@ const chatSlice = createSlice({
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.isLoadingMessages = false;
+        console.log('🔵 [REDUX] fetchMessages.fulfilled - Setting messages in state:', {
+          channelId: action.payload.channelId,
+          messageCount: action.payload.messages.length,
+          messages: action.payload.messages.map(m => ({
+            id: m.id,
+            hasAttachments: m.has_attachments,
+            attachmentCount: m.attachment_count,
+            attachments: m.attachments?.map(att => ({
+              id: att.id,
+              name: att.file_name,
+              file_url: att.file_url,
+              url: (att as any).url,
+              hasUrlField: !!(att as any).url
+            }))
+          }))
+        });
         state.messages[action.payload.channelId] = action.payload.messages;
       })
       .addCase(fetchMessages.rejected, (state, action) => {
@@ -860,6 +876,21 @@ const chatSlice = createSlice({
       })
       .addCase(fetchThreadMessages.fulfilled, (state, action) => {
         state.isLoadingThread = false;
+        console.log('🔵 [REDUX] fetchThreadMessages.fulfilled - Setting thread messages:', {
+          parentMessageId: action.payload.parentMessageId,
+          messageCount: action.payload.messages.length,
+          messages: action.payload.messages.map(m => ({
+            id: m.id,
+            hasAttachments: m.has_attachments,
+            attachments: m.attachments?.map(att => ({
+              id: att.id,
+              name: att.file_name,
+              file_url: att.file_url,
+              url: (att as any).url,
+              hasUrlField: !!(att as any).url
+            }))
+          }))
+        });
         state.threadMessages[action.payload.parentMessageId] = action.payload.messages;
       })
       .addCase(fetchThreadMessages.rejected, (state, action) => {
