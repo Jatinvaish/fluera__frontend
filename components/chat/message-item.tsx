@@ -120,10 +120,19 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [signedUrl, setSignedUrl] = useState<string>("");
 
   const isImage = file.mimeType?.startsWith("image/");
   const isVideo = file.mimeType?.startsWith("video/");
   const isPdf = file.mimeType?.includes("pdf");
+
+  useEffect(() => {
+    if (file.id && (isImage || isVideo)) {
+      ChatService.getFileDownloadUrl(file.id)
+        .then(info => setSignedUrl(info.url))
+        .catch(() => setImageError(true));
+    }
+  }, [file.id, isImage, isVideo]);
 
   const handleDownload = async () => {
     if (!file.id) {
@@ -152,26 +161,30 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   // Image preview
   if (isImage && !imageError) {
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
-        {!isImageLoaded && (
-          <div className="bg-muted flex h-32 w-48 animate-pulse items-center justify-center">
+      <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
+        {(!signedUrl || !isImageLoaded) && (
+          <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
             <ImageIcon className="text-muted-foreground h-8 w-8" />
           </div>
         )}
-        <img
-          src={file.thumbnailUrl || file.url}
-          alt={file.name}
-          className={cn(
-            "max-h-64 max-w-full object-contain transition-opacity",
-            isImageLoaded ? "opacity-100" : "absolute opacity-0"
-          )}
-          onLoad={() => setIsImageLoaded(true)}
-          onError={() => setImageError(true)}
-        />
-        <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-          <p className="truncate text-xs text-white">{file.name}</p>
-          <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
-        </div>
+        {signedUrl && (
+          <img
+            src={signedUrl}
+            alt={file.name}
+            className={cn(
+              "w-full max-h-80 object-cover transition-opacity",
+              isImageLoaded ? "opacity-100" : "absolute opacity-0"
+            )}
+            onLoad={() => setIsImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+        )}
+        {isImageLoaded && (
+          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+            <p className="truncate text-xs text-white">{file.name}</p>
+            <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
+          </div>
+        )}
       </div>
     );
   }
@@ -179,23 +192,20 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   // Video preview
   if (isVideo) {
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
-        <div className="bg-muted relative flex h-32 w-48 items-center justify-center">
-          {file.thumbnailUrl ? (
-            <img src={file.thumbnailUrl} alt={file.name} className="h-full w-full object-cover" />
-          ) : (
-            <Play className="text-muted-foreground h-12 w-12" />
-          )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <Play className="h-10 w-10 fill-white text-white" />
+      <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
+        {!signedUrl ? (
+          <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
+            <Play className="text-muted-foreground h-8 w-8" />
           </div>
-        </div>
-        <div className="bg-muted/50 p-2">
-          <p className="truncate text-xs font-medium">{file.name}</p>
-          <p className="text-muted-foreground text-[10px]">
-            {ChatService.formatFileSize(file.size)}
-          </p>
-        </div>
+        ) : (
+          <>
+            <video src={signedUrl} className="w-full max-h-80 object-cover" />
+            <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+              <p className="truncate text-xs text-white">{file.name}</p>
+              <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
+            </div>
+          </>
+        )}
       </div>
     );
   }
