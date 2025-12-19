@@ -751,7 +751,6 @@ export class ChatService {
       const link = document.createElement('a');
       link.href = downloadInfo.url;
       link.download = fileName;
-      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

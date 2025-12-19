@@ -191,7 +191,6 @@ export function FilePreviewModal({
         const link = document.createElement('a');
         link.href = currentFile.url;
         link.download = currentFile.name;
-        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -437,14 +436,14 @@ export function FilePreviewModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="!max-w-full w-screen h-screen p-0 overflow-hidden rounded-none"
+        className="!max-w-full w-screen h-screen p-0 overflow-hidden rounded-none flex flex-col"
         onInteractOutside={(e) => e.preventDefault()}
         hideDefaultClose
       >
         <DialogTitle className="sr-only">{currentFile.name}</DialogTitle>
         
         {/* Header */}
-        <div className="flex flex-row items-center justify-between p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex-shrink-0 flex flex-row items-center justify-between p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-4 min-w-0 flex-1">
             <div className="flex items-center gap-3">
               <FileTypeIcon 
@@ -538,13 +537,16 @@ export function FilePreviewModal({
 
         {/* Preview Content */}
         <div 
-          className="flex-1 relative overflow-hidden"
-          onWheel={(e) => {
-            if (isImage && !imageLoadError) {
-              e.preventDefault();
-              e.stopPropagation();
-              const delta = e.deltaY > 0 ? -0.1 : 0.1;
-              setZoom(prev => Math.max(0.1, Math.min(5, prev + delta)));
+          className="flex-1 min-h-0 relative overflow-hidden"
+          ref={(el) => {
+            if (el) {
+              el.addEventListener('wheel', (e) => {
+                if (isImage && !imageLoadError) {
+                  e.preventDefault();
+                  const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                  setZoom(prev => Math.max(0.1, Math.min(5, prev + delta)));
+                }
+              }, { passive: false });
             }
           }}
         >
@@ -552,7 +554,7 @@ export function FilePreviewModal({
         </div>
 
         {/* Footer with file info */}
-        <div className="border-t p-4 bg-muted/20">
+        <div className="flex-shrink-0 border-t p-4 bg-muted/20">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-6 text-muted-foreground">
               <div className="flex items-center gap-2">
