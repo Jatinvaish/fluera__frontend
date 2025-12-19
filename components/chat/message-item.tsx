@@ -14,8 +14,10 @@ import {
   ExternalLink,
   FileIcon,
   Image as ImageIcon,
-  Play
+  Play,
+  Eye
 } from "lucide-react";
+import { FilePreviewModal } from "./file-preview-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
 import { ChatService } from "@/lib/api/services/chat-service";
@@ -114,7 +116,7 @@ interface FileAttachmentProps {
   };
 }
 
-const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
+const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }> = ({ file, onPreview }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -150,7 +152,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
   // Image preview
   if (isImage && !imageError) {
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border">
+      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         {!isImageLoaded && (
           <div className="bg-muted flex h-32 w-48 animate-pulse items-center justify-center">
             <ImageIcon className="text-muted-foreground h-8 w-8" />
@@ -160,21 +162,12 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
           src={file.thumbnailUrl || file.url}
           alt={file.name}
           className={cn(
-            "max-h-64 max-w-full cursor-pointer object-contain transition-opacity",
+            "max-h-64 max-w-full object-contain transition-opacity",
             isImageLoaded ? "opacity-100" : "absolute opacity-0"
           )}
           onLoad={() => setIsImageLoaded(true)}
           onError={() => setImageError(true)}
-          onClick={() => file.url && window.open(file.url, "_blank")}
         />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-colors group-hover:bg-black/30 group-hover:opacity-100">
-          <button
-            onClick={handleDownload}
-            className="rounded-full bg-white/90 p-2 transition-colors hover:bg-white"
-            disabled={isDownloading}>
-            <Download className="h-4 w-4 text-gray-700" />
-          </button>
-        </div>
         <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2">
           <p className="truncate text-xs text-white">{file.name}</p>
           <p className="text-[10px] text-white/80">{ChatService.formatFileSize(file.size)}</p>
@@ -186,7 +179,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
   // Video preview
   if (isVideo) {
     return (
-      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border">
+      <div className="border-border group relative max-w-xs overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         <div className="bg-muted relative flex h-32 w-48 items-center justify-center">
           {file.thumbnailUrl ? (
             <img src={file.thumbnailUrl} alt={file.name} className="h-full w-full object-cover" />
@@ -203,12 +196,6 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
             {ChatService.formatFileSize(file.size)}
           </p>
         </div>
-        <button
-          onClick={handleDownload}
-          className="absolute top-2 right-2 rounded-full bg-white/90 p-1.5 opacity-0 transition-colors group-hover:opacity-100 hover:bg-white"
-          disabled={isDownloading}>
-          <Download className="h-3.5 w-3.5 text-gray-700" />
-        </button>
       </div>
     );
   }
@@ -217,7 +204,7 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
   return (
     <div
       className="border-border bg-muted/50 hover:bg-muted group inline-flex max-w-xs cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors"
-      onClick={handleDownload}>
+      onClick={onPreview}>
       <div className="bg-primary/10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
         <span className="text-lg">
           {ChatService.getFileIcon(file.mimeType || "application/octet-stream")}
@@ -227,19 +214,6 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ file }) => {
         <p className="truncate text-sm font-medium">{file.name}</p>
         <p className="text-muted-foreground text-xs">{ChatService.formatFileSize(file.size)}</p>
       </div>
-      <button
-        className="hover:bg-primary/10 flex-shrink-0 rounded-full p-1.5 opacity-60 transition-opacity group-hover:opacity-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDownload();
-        }}
-        disabled={isDownloading}>
-        {isDownloading ? (
-          <div className="border-primary h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
-      </button>
     </div>
   );
 };
@@ -260,6 +234,8 @@ export function MessageItem({
   onScrollToMessage,
   isInThread = false
 }: MessageItemProps) {
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewFileIndex, setPreviewFileIndex] = useState(0);
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -417,7 +393,6 @@ export function MessageItem({
           </div>
 
           {/* ✅ File Attachments */}
-          {/* ✅ File Attachments - Grid for multiple files */}
           {message.files && message.files.length > 0 && (
             <div
               className={cn(
@@ -425,9 +400,26 @@ export function MessageItem({
                 message.files.length === 1 ? "flex" : "grid max-w-md grid-cols-2 sm:grid-cols-3"
               )}>
               {message.files.map((file, index) => (
-                <FileAttachment key={file.id || `${file.name}-${index}`} file={file} />
+                <FileAttachment 
+                  key={file.id || `${file.name}-${index}`} 
+                  file={file}
+                  onPreview={() => {
+                    setPreviewFileIndex(index);
+                    setPreviewModalOpen(true);
+                  }}
+                />
               ))}
             </div>
+          )}
+
+          {/* File Preview Modal */}
+          {message.files && message.files.length > 0 && (
+            <FilePreviewModal
+              open={previewModalOpen}
+              onOpenChange={setPreviewModalOpen}
+              files={message.files}
+              initialIndex={previewFileIndex}
+            />
           )}
 
           {/* Reactions */}

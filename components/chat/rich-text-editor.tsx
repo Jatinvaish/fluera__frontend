@@ -125,7 +125,7 @@ interface FilePreviewProps {
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({ attachment, onRemove }) => {
-  const isImage = attachment.file.type.startsWith("image/");
+  const isImage = ChatService.isImage(attachment.file.type, attachment.file.name);
 
   return (
     <div className="bg-muted group relative inline-flex items-center gap-1 rounded px-2 py-1 sm:gap-2">

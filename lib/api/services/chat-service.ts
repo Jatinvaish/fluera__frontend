@@ -282,6 +282,19 @@ export interface NotificationPreferencePayload {
 
 // ==================== CHAT SERVICE ====================
 export class ChatService {
+  // Simple in-memory cache for signed URLs (50 minutes cache)
+  private static signedUrlCache = new Map<number, { url: string; expires: number }>();
+  private static readonly CACHE_DURATION = 50 * 60 * 1000; // 50 minutes in milliseconds
+  private static cleanupInterval: NodeJS.Timeout | null = null;
+
+  // Initialize cleanup interval
+  static {
+    if (typeof window !== 'undefined') {
+      this.cleanupInterval = setInterval(() => {
+        this.clearExpiredCache();
+      }, 10 * 60 * 1000); // Clean every 10 minutes
+    }
+  }
   // ==================== FILE UPLOAD METHODS ====================
 
   /**
@@ -549,12 +562,32 @@ export class ChatService {
     }
   }
   /**
-   * ✅ Get file download URL
+   * ✅ Get file download URL with caching
    */
   static async getFileDownloadUrl(attachmentId: number): Promise<FileDownloadInfo> {
-    return extractData(
+    // Check cache first
+    const cached = this.signedUrlCache.get(attachmentId);
+    if (cached && cached.expires > Date.now()) {
+      return {
+        url: cached.url,
+        fileName: '',
+        fileSize: 0,
+        mimeType: ''
+      };
+    }
+
+    // Fetch new signed URL
+    const result = extractData(
       await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.FILE_DOWNLOAD(attachmentId))
     );
+
+    // Cache the result
+    this.signedUrlCache.set(attachmentId, {
+      url: result.url,
+      expires: Date.now() + this.CACHE_DURATION
+    });
+
+    return result;
   }
 
   /**
@@ -562,6 +595,35 @@ export class ChatService {
    */
   static async deleteAttachment(attachmentId: number): Promise<void> {
     await encryptedApiClient.delete(API_ENDPOINTS.CHAT.MESSAGES.FILE_DELETE(attachmentId));
+    // Clear from cache
+    this.signedUrlCache.delete(attachmentId);
+  }
+
+  /**
+   * ✅ Get cached signed URL without API call
+   */
+  static getCachedSignedUrl(attachmentId: number): string | null {
+    const cached = this.signedUrlCache.get(attachmentId);
+    if (cached && cached.expires > Date.now()) {
+      return cached.url;
+    }
+    // Clean up expired entry
+    if (cached) {
+      this.signedUrlCache.delete(attachmentId);
+    }
+    return null;
+  }
+
+  /**
+   * ✅ Clear expired cache entries
+   */
+  static clearExpiredCache(): void {
+    const now = Date.now();
+    for (const [id, cached] of this.signedUrlCache.entries()) {
+      if (cached.expires <= now) {
+        this.signedUrlCache.delete(id);
+      }
+    }
   }
 
   /**
@@ -570,37 +632,133 @@ export class ChatService {
   static formatFileSize(bytes: number): string {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    const size = bytes / Math.pow(k, i);
+    return (size < 10 ? size.toFixed(1) : Math.round(size)) + " " + sizes[i];
   }
 
   /**
    * ✅ Get file icon based on mime type
    */
-  static getFileIcon(mimeType: string): string {
+  static getFileIcon(mimeType: string, fileName?: string): string {
     if (mimeType.startsWith("image/")) return "🖼️";
     if (mimeType.startsWith("video/")) return "🎥";
     if (mimeType.startsWith("audio/")) return "🎵";
     if (mimeType.includes("pdf")) return "📄";
     if (mimeType.includes("word") || mimeType.includes("document")) return "📝";
     if (mimeType.includes("excel") || mimeType.includes("spreadsheet")) return "📊";
-    if (mimeType.includes("zip") || mimeType.includes("rar")) return "📦";
+    if (mimeType.includes("powerpoint") || mimeType.includes("presentation")) return "📊";
+    if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("archive")) return "📦";
+    if (mimeType.startsWith("text/") || mimeType.includes("json")) return "📝";
+    
+    // Check by file extension if mime type is generic
+    if (fileName) {
+      const ext = fileName.toLowerCase();
+      if (ext.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/)) return "🖼️";
+      if (ext.match(/\.(mp4|avi|mov|wmv|flv|webm|mkv)$/)) return "🎥";
+      if (ext.match(/\.(mp3|wav|flac|aac|ogg|wma)$/)) return "🎵";
+      if (ext.match(/\.(pdf)$/)) return "📄";
+      if (ext.match(/\.(doc|docx|txt|md|rtf)$/)) return "📝";
+      if (ext.match(/\.(xls|xlsx|csv)$/)) return "📊";
+      if (ext.match(/\.(ppt|pptx)$/)) return "📊";
+      if (ext.match(/\.(zip|rar|7z|tar|gz)$/)) return "📦";
+      if (ext.match(/\.(js|ts|jsx|tsx|css|html|json|xml|yaml|yml)$/)) return "💻";
+    }
+    
     return "📎";
   }
 
   /**
    * ✅ Check if file is an image
    */
-  static isImage(mimeType: string): boolean {
-    return mimeType.startsWith("image/");
+  static isImage(mimeType: string, fileName?: string): boolean {
+    if (mimeType.startsWith("image/")) return true;
+    if (fileName) {
+      return /\.(jpg|jpeg|png|gif|bmp|webp|svg|ico)$/i.test(fileName);
+    }
+    return false;
+  }
+
+  /**
+   * ✅ Check if file is a video
+   */
+  static isVideo(mimeType: string, fileName?: string): boolean {
+    if (mimeType.startsWith("video/")) return true;
+    if (fileName) {
+      return /\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp)$/i.test(fileName);
+    }
+    return false;
+  }
+
+  /**
+   * ✅ Check if file is audio
+   */
+  static isAudio(mimeType: string, fileName?: string): boolean {
+    if (mimeType.startsWith("audio/")) return true;
+    if (fileName) {
+      return /\.(mp3|wav|flac|aac|ogg|wma|m4a)$/i.test(fileName);
+    }
+    return false;
+  }
+
+  /**
+   * ✅ Check if file is a PDF
+   */
+  static isPdf(mimeType: string, fileName?: string): boolean {
+    if (mimeType.includes("pdf")) return true;
+    if (fileName) {
+      return /\.pdf$/i.test(fileName);
+    }
+    return false;
+  }
+
+  /**
+   * ✅ Check if file is text-based
+   */
+  static isTextFile(mimeType: string, fileName?: string): boolean {
+    if (mimeType.startsWith("text/") || 
+        mimeType.includes("json") ||
+        mimeType.includes("xml") ||
+        mimeType.includes("javascript") ||
+        mimeType.includes("css")) return true;
+    
+    if (fileName) {
+      return /\.(txt|md|json|xml|csv|log|js|ts|jsx|tsx|css|html|htm|yaml|yml|ini|conf|cfg|py|java|cpp|c|h|php|rb|go|rs|swift|kt)$/i.test(fileName);
+    }
+    return false;
   }
 
   /**
    * ✅ Check if file is previewable
    */
-  static isPreviewable(mimeType: string): boolean {
-    return mimeType.startsWith("image/") || mimeType === "application/pdf";
+  static isPreviewable(mimeType: string, fileName?: string): boolean {
+    return (
+      this.isImage(mimeType, fileName) ||
+      this.isVideo(mimeType, fileName) ||
+      this.isAudio(mimeType, fileName) ||
+      this.isPdf(mimeType, fileName) ||
+      this.isTextFile(mimeType, fileName)
+    );
+  }
+
+  /**
+   * ✅ Download file with proper signed URL handling
+   */
+  static async downloadFile(attachmentId: number, fileName: string): Promise<void> {
+    try {
+      const downloadInfo = await this.getFileDownloadUrl(attachmentId);
+      const link = document.createElement('a');
+      link.href = downloadInfo.url;
+      link.download = fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Download failed:', error);
+      throw error;
+    }
   }
 
   // ==================== MESSAGES ====================

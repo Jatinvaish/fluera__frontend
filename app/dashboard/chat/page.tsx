@@ -258,13 +258,13 @@ const ChatPage = () => {
       read_by_user_ids: msg.read_by_user_ids,
       delivered_to_user_ids: msg.delivered_to_user_ids,
       am_i_mentioned: msg.am_i_mentioned || false,
-      // ✅ Handle attachments from backend
+      // ✅ Handle attachments from backend - use signed URLs
       files:
         msg.attachments?.map((att: any) => ({
           id: att.id,
           name: att.file_name || att.filename,
           size: att.file_size,
-          url: att.file_url,
+          url: att.file_url, // This will be replaced with signed URL on preview
           mimeType: att.mime_type || att.content_type,
           thumbnailUrl: att.thumbnail_url
         })) || []
