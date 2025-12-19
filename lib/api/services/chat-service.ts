@@ -585,7 +585,7 @@ export class ChatService {
 
     console.log('🔵 [CHAT-SERVICE] Fetching new signed URL from API for:', attachmentId);
     // Fetch new signed URL
-    const result = extractData(
+    const result:any = extractData(
       await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.FILE_DOWNLOAD(attachmentId))
     );
 
