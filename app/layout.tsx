@@ -1,4 +1,3 @@
-// app/layout.tsx - REMOVE duplicate permission calls
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -58,7 +57,10 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initAuth();
+    // ✅ FIX: Only run on client
+    if (typeof window !== 'undefined') {
+      initAuth();
+    }
   }, [dispatch, isPublic]);
 
   if (!mounted) return null;
@@ -79,6 +81,50 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// ✅ FIX: Add error boundary wrapper
+function ErrorBoundaryWrapper({ children }: { children: React.ReactNode }) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error caught:', event.error);
+      setHasError(true);
+      event.preventDefault();
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      event.preventDefault();
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  if (hasError) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-primary text-primary-foreground rounded"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const themeSettings = {
     preset: DEFAULT_THEME.preset,
@@ -90,18 +136,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={cn("bg-background group/layout font-sans", fontVariables)}>
-        <Provider store={store}>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <ActiveThemeProvider initialTheme={themeSettings}>
-              <AuthInitializer>
-                <NextTopLoader color="var(--primary)" showSpinner={false} height={2} />
-                {children}
-                <Toaster />
-                <ToasterProvider />
-              </AuthInitializer>
-            </ActiveThemeProvider>
-          </ThemeProvider>
-        </Provider>
+        <ErrorBoundaryWrapper>
+          <Provider store={store}>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <ActiveThemeProvider initialTheme={themeSettings}>
+                <AuthInitializer>
+                  <NextTopLoader color="var(--primary)" showSpinner={false} height={2} />
+                  {children}
+                  <Toaster />
+                  <ToasterProvider />
+                </AuthInitializer>
+              </ActiveThemeProvider>
+            </ThemeProvider>
+          </Provider>
+        </ErrorBoundaryWrapper>
       </body>
     </html>
   );
