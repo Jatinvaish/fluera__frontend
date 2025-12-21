@@ -88,9 +88,9 @@ class EncryptedApiClient {
     this.client.interceptors.request.use(
       async (config) => {
         // Get fresh token from cookies for each request
-        const token = Cookies.get('accessToken') || 
+        const token = Cookies.get('accessToken') ||
           (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
-        
+
         const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         if (token) {
@@ -360,9 +360,13 @@ class EncryptedApiClient {
 
   private setTokens(accessToken: string, refreshToken: string) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const cookieOptions: any = { expires: 7, path: '/' };
     if (isHttps) {
-      cookieOptions.secure = true;
+      if (isProduction) {
+        cookieOptions.secure = true;
+      }
       cookieOptions.sameSite = 'lax';
     }
     Cookies.set('accessToken', accessToken, cookieOptions);
