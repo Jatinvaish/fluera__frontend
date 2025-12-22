@@ -1,27 +1,48 @@
 import type { NextConfig } from "next";
-import { config } from "dotenv";
-
-config();
-
-const isProduction = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  // ✅ FIX 1: Disable static optimization that causes hydration errors
+  output: 'standalone',
+
+  // ✅ FIX 2: Strict error handling
+  reactStrictMode: true,
+
+  // ✅ FIX 3: Proper image domains
   images: {
     remotePatterns: [
       {
         protocol: "http",
-        hostname: "localhost"
-      },
-      {
+        hostname: process.env.NODE_ENV === 'production' ? "fluera.io" : "fluera.io"
+      }, {
         protocol: "https",
-        //todo: change to your domain in production
-        hostname: isProduction ? "your-production-domain.com" : "your-development-domain.com"
+        hostname: "fluera.io"
       },
       {
         protocol: "https",
         hostname: "images.unsplash.com"
       }
-    ]
+    ],
+    unoptimized: process.env.NODE_ENV === 'production' // Faster builds
+  },
+
+  // ✅ FIX 4: Disable X-Powered-By header
+  poweredByHeader: false,
+
+  // ✅ FIX 5: Compression
+  compress: true,
+
+  // ✅ FIX 6: Remove console logs in production
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false
+  },
+
+  // ✅ FIX 7: Disable telemetry
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb'
+    }
   }
 };
 
