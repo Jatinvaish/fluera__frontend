@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -64,29 +64,51 @@ interface CurrentStepConfig {
 
 const OnboardingFlow: React.FC = () => {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [userType, setUserType] = useState<"creator" | "agency" | "brand" | "">("");
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    email: "",
-    dealFrequency: "",
-    followersCount: "",
-    staffCount: "",
-    creatorsManaged: "",
-    yearlyRevenue: "",
-    brandStaffCount: "",
-    creatorsPartneredMonthly: "",
-    organizationName: "",
-    website: "",
-    stageName: "",
-    bio: "",
-    industry: "",
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('onboarding');
+      if (saved) return JSON.parse(saved).step || 0;
+    }
+    return 0;
+  });
+  const [userType, setUserType] = useState<"creator" | "agency" | "brand" | "">(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('onboarding');
+      if (saved) return JSON.parse(saved).type || "";
+    }
+    return "";
+  });
+  const [formData, setFormData] = useState<FormData>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('onboarding');
+      if (saved) return JSON.parse(saved).data;
+    }
+    return {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
+      dealFrequency: "",
+      followersCount: "",
+      staffCount: "",
+      creatorsManaged: "",
+      yearlyRevenue: "",
+      brandStaffCount: "",
+      creatorsPartneredMonthly: "",
+      organizationName: "",
+      website: "",
+      stageName: "",
+      bio: "",
+      industry: "",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
   });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    localStorage.setItem('onboarding', JSON.stringify({ step: currentStep, type: userType, data: formData }));
+  }, [currentStep, userType, formData]);
 
   const images = [
     "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&h=800&fit=crop",
@@ -96,7 +118,13 @@ const OnboardingFlow: React.FC = () => {
     "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=800&fit=crop"
   ];
 
-  const [imageIndex, setImageIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('onboarding');
+      if (saved) return JSON.parse(saved).step % images.length || 0;
+    }
+    return 0;
+  });
 
   const userTypes: UserTypeOption[] = [
     {
@@ -497,6 +525,7 @@ const OnboardingFlow: React.FC = () => {
 
       console.log("✅ Redirecting to dashboard...");
 
+      localStorage.removeItem('onboarding');
       // ✅ Hard navigation to dashboard (forces middleware re-read)
       window.location.href = "/dashboard";
     } catch (err: any) {
@@ -743,7 +772,7 @@ const OnboardingFlow: React.FC = () => {
               ))}
             </div>
 
-            <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+            <div className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 gap-2">
               {images.map((_, idx) => (
                 <button
                   key={idx}

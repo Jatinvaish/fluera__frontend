@@ -938,11 +938,6 @@ const ChatPage = () => {
 
   return (
     <div className="bg-background flex h-[calc(100vh-var(--header-height))] w-full overflow-hidden">
-      {!isConnected && (
-        <div className="fixed top-[var(--header-height)] right-0 left-0 z-50 bg-yellow-500 py-1 text-center text-xs text-white lg:left-[var(--sidebar-collapsed-width)]">
-          ⚠️ Reconnecting...
-        </div>
-      )}
 
       <PrimarySidebar
         activeTab={activeTab}

@@ -370,7 +370,12 @@ export function MessageItem({
     .toUpperCase();
 
   return (
-    <div className="group hover:bg-muted/30 relative -mx-4 px-4 py-1.5 lg:-mx-6 lg:px-6">
+    <div className={cn(
+      "group relative -mx-4 px-4 py-1.5 lg:-mx-6 lg:px-6",
+      message.isPinned 
+        ? "bg-primary/10 hover:bg-primary/20" 
+        : "hover:bg-muted"
+    )}>
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="from-primary/80 to-primary text-primary-foreground mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-gradient-to-br text-sm font-semibold">
