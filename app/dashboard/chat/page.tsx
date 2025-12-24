@@ -126,14 +126,12 @@ const ChatPage = () => {
 
           await dispatch(fetchChannelMembers(selectedChannel.id)).unwrap();
 
-          // ✅ NEW: Mark entire channel as read instead of individual message
-          if (result?.messages && result.messages.length > 0) {
-            try {
-              await dispatch(markChannelAsRead(selectedChannel.id)).unwrap();
-              console.log('✅ Marked channel as read:', selectedChannel.id);
-            } catch (error) {
-              console.error('❌ Failed to mark channel as read:', error);
-            }
+          // ✅ UPDATED: Mark entire channel as read via WebSocket
+          if (result?.messages && result.messages.length > 0 && isConnected) {
+            console.log('📖 Marking channel as read via WebSocket:', selectedChannel.id);
+
+            // Send mark_as_read event with just channelId
+            markAsReadWS(0, selectedChannel.id); // messageId=0 means "mark all"
           }
 
           dispatch(resetUnreadCount(selectedChannel.id));
@@ -144,7 +142,7 @@ const ChatPage = () => {
       };
       loadChannelData();
     }
-  }, [selectedChannel?.id, dispatch, isConnected]);
+  }, [selectedChannel?.id, dispatch, isConnected, markAsReadWS]);
 
   // Load Thread
   useEffect(() => {
