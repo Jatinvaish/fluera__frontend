@@ -183,11 +183,12 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
           );
           break;
 
+
         case "message_read":
-          console.log("📖 MESSAGE READ - RAW:", data);
           dispatch(
             updateMessageReadStatus({
               messageId: data.messageId,
+              channelId: data.channelId, // ✅ ADD channelId
               readBy: parseInt(data.readBy) || data.readBy,
               readByName: data.readByName,
               readCount: parseInt(data.readCount) || data.readCount,
@@ -321,11 +322,19 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
     socketRef.current.emit("typing_stop", { channelId });
   }, []);
 
- 
+
   const markAsRead = useCallback((messageId: number, channelId: number) => {
     if (!socketRef.current?.connected) return;
-    socketRef.current.emit("mark_as_read", { messageId, channelId });
+
+    console.log('📖 Marking as read:', { messageId, channelId });
+
+    // ✅ If messageId is 0, mark entire channel as read
+    socketRef.current.emit("mark_as_read", {
+      channelId,
+      messageId: messageId || undefined // Don't send if 0
+    });
   }, []);
+
 
   const addReaction = useCallback((messageId: number, emoji: string, channelId: number) => {
     if (!socketRef.current?.connected) return;

@@ -167,7 +167,7 @@ export const deleteAttachment = createAsyncThunk<
 export const markChannelAsRead = createAsyncThunk<
   { channelId: number; markedCount: number }, // Return type
   number, // Argument type
-  { rejectValue: string }  
+  { rejectValue: string }
 >(
   'chat/markChannelAsRead',
   async (channelId, { rejectWithValue }) => {
@@ -373,7 +373,7 @@ export const fetchUnreadCount = createAsyncThunk<number, void>(
     }
   }
 );
- 
+
 
 export const forwardMessage = createAsyncThunk(
   'chat/forwardMessage',
@@ -475,14 +475,14 @@ const chatSlice = createSlice({
       const exists = state.messages[channelId].some((m) => m.id === action.payload.id);
       if (!exists) {
         // If this is a reply, populate reply author name from the parent message
-        if (action.payload.reply_to_message_id && !action.payload.reply_sender_first_name) {
+        if (action.payload.reply_to_message_id && !action.payload.sender_first_name) {
           const parentMessage = state.messages[channelId].find(
             m => m.id === action.payload.reply_to_message_id
           );
           if (parentMessage) {
-            action.payload.reply_sender_first_name = parentMessage.sender_first_name;
-            action.payload.reply_sender_last_name = parentMessage.sender_last_name;
-            action.payload.reply_message_content = parentMessage.content;
+            action.payload.sender_first_name = parentMessage.sender_first_name;
+            action.payload.sender_last_name = parentMessage.sender_last_name;
+            action.payload.content = parentMessage.content;
           }
         }
         state.messages[channelId] = [...state.messages[channelId], action.payload];
@@ -622,33 +622,50 @@ const chatSlice = createSlice({
 
     updateMessageReadStatus: (state, action: PayloadAction<{
       messageId: number;
+      channelId: number; // ✅ ADD channelId
       readBy: number | string;
       readByName?: string;
       readCount?: number | string;
       timestamp?: string;
     }>) => {
-      const { messageId, readBy, readByName, readCount, timestamp } = action.payload;
+      const { messageId, channelId, readBy, readByName, readCount, timestamp } = action.payload;
 
-      for (const channelId in state.messages) {
-        const messages = state.messages[channelId];
-        const message = messages.find(m => Number(m.id) === Number(messageId));
+      console.log("🔍 [REDUX] updateMessageReadStatus:", {
+        messageId,
+        channelId,
+        readBy,
+        readCount
+      });
 
-        if (message) {
-          message.is_read = true;
-          message.read_count = typeof readCount === 'string' ? parseInt(readCount) : readCount;
+      // ✅ Use channelId to find the message directly
+      const messages = state.messages[channelId];
 
-          if (!message.read_by_user_ids) {
-            message.read_by_user_ids = String(readBy);
-          } else {
-            const readByArray = message.read_by_user_ids.split(',').map(id => id.trim());
-            const readByStr = String(readBy);
-            if (!readByArray.includes(readByStr)) {
-              message.read_by_user_ids = [...readByArray, readByStr].join(',');
-            }
-          }
-          return;
+      if (!messages) {
+        console.warn("❌ Channel messages not found:", channelId);
+        return;
+      }
+
+      const message = messages.find(m => Number(m.id) === Number(messageId));
+
+      if (!message) {
+        console.warn("❌ Message not found in channel:", { messageId, channelId });
+        return;
+      }
+
+      // ✅ Update read status
+      message.is_read = true;
+      message.read_count = typeof readCount === 'string' ? parseInt(readCount) : readCount;
+
+      if (!message.read_by_user_ids) {
+        message.read_by_user_ids = String(readBy);
+      } else {
+        const readByArray = message.read_by_user_ids.split(',').map(id => id.trim());
+        const readByStr = String(readBy);
+        if (!readByArray.includes(readByStr)) {
+          message.read_by_user_ids = [...readByArray, readByStr].join(',');
         }
       }
+
     },
 
     // ✅ ADD: Mark all messages in channel as read (for local state update)
