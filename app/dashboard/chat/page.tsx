@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PrimarySidebar } from "@/components/chat/primary-sidebar";
 import { Sidebar } from "@/components/chat/sidebar";
 import { ResizableSidebar } from "@/components/chat/resizable-sidebar";
@@ -44,6 +45,8 @@ import {
 
 const ChatPage = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Redux State
   const selectedChannel = useAppSelector((state) => state.chat.selectedChannel);
@@ -111,6 +114,25 @@ const ChatPage = () => {
     };
     init();
   }, [dispatch]);
+
+  // Restore channel from URL
+  useEffect(() => {
+    const id = searchParams.get('id');
+    if (id && channels.length > 0 && !selectedChannel) {
+      const channel = channels.find(c => c.id === parseInt(id));
+      if (channel) {
+        dispatch(setSelectedChannel(channel));
+        setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
+      }
+    }
+  }, [searchParams, channels, selectedChannel, dispatch]);
+
+  // Update URL when channel changes
+  useEffect(() => {
+    if (selectedChannel) {
+      router.replace(`/dashboard/chat?id=${selectedChannel.id}`, { scroll: false });
+    }
+  }, [selectedChannel?.id, router]);
 
   // ✅ UPDATED: Load Channel Data with mark all as read
   useEffect(() => {
@@ -231,7 +253,7 @@ const ChatPage = () => {
       replyTo: msg.reply_to_message_id
         ? {
           messageId: msg.reply_to_message_id.toString(),
-          authorName: msg.reply_sender_first_name + " " + msg.reply_sender_last_name || "User",
+          authorName: `${msg.reply_sender_first_name || ""} ${msg.reply_sender_last_name || ""}`.trim() || "User",
           content: msg.reply_message_content || "Previous message"
         }
         : undefined,
@@ -832,6 +854,7 @@ const ChatPage = () => {
               isPrivate={selectedChannel.is_private}
               isPinned={Boolean(selectedChannel.is_pinned)}
               isMuted={selectedChannel.is_muted}
+              isDirect={isDirect}
               onPinChange={handlePinChannel}
               onUpdateChannel={handleUpdateChannel}
               onArchiveChannel={handleArchiveChannel}

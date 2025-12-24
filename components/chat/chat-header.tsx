@@ -14,6 +14,7 @@ interface ChatHeaderProps {
   channelId?: number
   isPinned?: boolean
   isMuted?: boolean
+  isDirect?: boolean
   onInfoClick?: () => void
   onUpdateChannel?: (name: string, description: string) => void
   onArchiveChannel?: () => void
@@ -33,6 +34,7 @@ export function ChatHeader({
   memberCount,
   isPinned = false,
   isMuted = false,
+  isDirect = false,
   onInfoClick,
   onUpdateChannel,
   onArchiveChannel,
@@ -52,7 +54,11 @@ export function ChatHeader({
         <div className="flex items-center justify-between gap-3 w-full">
           {/* Left side */}
           <div className="flex items-center gap-2 min-w-0 flex-1">
-            {isPrivate ? (
+            {isDirect ? (
+              <div className="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
+                {title?.charAt(0)?.toUpperCase() || '?'}
+              </div>
+            ) : isPrivate ? (
               <Lock className="h-5 w-5 text-muted-foreground flex-shrink-0" />
             ) : (
               <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -77,13 +83,13 @@ export function ChatHeader({
             <Button size="icon" variant="ghost" onClick={onInviteUsers} title="Invite people" className="h-8 w-8 hover:bg-muted">
               <Users className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="ghost" onClick={() => setPinOpen(true)} title={isPinned ? "Unpin channel" : "Pin channel"} className="h-8 w-8 hover:bg-muted">
+            <Button size="icon" variant="ghost" onClick={() => setPinOpen(true)} title={isPinned ? `Unpin ${isDirect ? "chat" : "channel"}` : `Pin ${isDirect ? "chat" : "channel"}`} className="h-8 w-8 hover:bg-muted">
               <Pin className={`h-4 w-4 ${isPinned ? "text-primary fill-primary" : ""}`} />
             </Button>
             <Button size="icon" variant="ghost" onClick={onMuteChannel} title={isMuted ? "Unmute" : "Mute"} className="h-8 w-8 hover:bg-muted">
               {isMuted ? <BellOff className="h-4 w-4 text-muted-foreground" /> : <Bell className="h-4 w-4" />}
             </Button>
-            <Button size="icon" variant="ghost" onClick={onMembersClick} title="Channel info" className="h-8 w-8 hover:bg-muted">
+            <Button size="icon" variant="ghost" onClick={onMembersClick} title={`${isDirect ? "Chat" : "Channel"} info`} className="h-8 w-8 hover:bg-muted">
               <Info className="h-4 w-4" />
             </Button>
             <Button size="icon" variant="ghost" onClick={() => setSettingsOpen(true)} title="Settings" className="h-8 w-8 hover:bg-muted">
@@ -100,6 +106,7 @@ export function ChatHeader({
         channelName={title}
         description={description}
         isPrivate={isPrivate}
+        isDirect={isDirect}
         onUpdateChannel={onUpdateChannel}
         onArchiveChannel={onArchiveChannel}
         onLeaveChannel={onLeaveChannel}
@@ -109,6 +116,7 @@ export function ChatHeader({
         onOpenChange={setPinOpen}
         channelName={title}
         isPinned={isPinned}
+        isDirect={isDirect}
         onPinChange={onPinChange || (() => {})}
       />
     </>

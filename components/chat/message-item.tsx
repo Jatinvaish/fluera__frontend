@@ -477,7 +477,7 @@ export function MessageItem({
             message.threadReplies > 0 && (
               <button
                 onClick={() => onOpenThread?.(message.id)}
-                className="text-primary hover:text-primary/80 mt-2 flex items-center gap-2 text-xs font-medium">
+                className="text-primary hover:text-primary/80 mt-2 flex items-center gap-2 text-xs font-medium cursor-pointer">
                 <MessageCircle className="h-4 w-4" />
                 {message.threadReplies === 0
                   ? "Reply in thread"
