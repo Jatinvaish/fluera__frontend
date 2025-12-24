@@ -463,12 +463,28 @@ const chatSlice = createSlice({
     addMessageToChannel: (state, action: PayloadAction<Message>) => {
       const channelId = action.payload.channel_id;
 
+      // Skip adding thread replies to main channel messages
+      if (action.payload.thread_id) {
+        return;
+      }
+
       if (!state.messages[channelId]) {
         state.messages[channelId] = [];
       }
 
       const exists = state.messages[channelId].some((m) => m.id === action.payload.id);
       if (!exists) {
+        // If this is a reply, populate reply author name from the parent message
+        if (action.payload.reply_to_message_id && !action.payload.reply_sender_first_name) {
+          const parentMessage = state.messages[channelId].find(
+            m => m.id === action.payload.reply_to_message_id
+          );
+          if (parentMessage) {
+            action.payload.reply_sender_first_name = parentMessage.sender_first_name;
+            action.payload.reply_sender_last_name = parentMessage.sender_last_name;
+            action.payload.reply_message_content = parentMessage.content;
+          }
+        }
         state.messages[channelId] = [...state.messages[channelId], action.payload];
       }
     },
@@ -711,13 +727,6 @@ const chatSlice = createSlice({
       const exists = state.threadMessages[parentMessageId].some((m) => m.id === message.id);
       if (!exists) {
         state.threadMessages[parentMessageId] = [...state.threadMessages[parentMessageId], message];
-      }
-
-      if (state.messages[message.channel_id]) {
-        const existsInChannel = state.messages[message.channel_id].some((m) => m.id === message.id);
-        if (!existsInChannel) {
-          state.messages[message.channel_id] = [...state.messages[message.channel_id], message];
-        }
       }
     },
 
