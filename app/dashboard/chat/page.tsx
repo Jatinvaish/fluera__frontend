@@ -347,7 +347,7 @@ const ChatPage = () => {
       name: ch.name || "Unnamed Channel",
       isPrivate: ch.is_private || false,
       isPinned: Boolean(ch.is_pinned),
-      unread: ch.unread_count || 0
+      unread: ch.unread_count || undefined
     }));
 
   const sidebarDMs = (channels || [])
@@ -355,7 +355,7 @@ const ChatPage = () => {
     .map((ch) => ({
       id: ch.channel_id || ch.id?.toString() || "",
       name: getChannelDisplayName(ch),
-      unread: ch.unread_count || 0
+      unread: ch.unread_count || undefined
     }));
 
   const currentUserForSidebar = currentUser

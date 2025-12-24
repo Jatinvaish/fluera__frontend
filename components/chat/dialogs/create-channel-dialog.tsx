@@ -32,10 +32,6 @@ export function CreateChannelDialog({ open, onOpenChange, onCreateChannel }: Cre
       setError("Channel name is required")
       return
     }
-    if (!/^[a-z0-9-]+$/.test(name)) {
-      setError("Channel name can only contain lowercase letters, numbers, and hyphens")
-      return
-    }
     onCreateChannel(name, isPrivate, description)
     setName("")
     setDescription("")

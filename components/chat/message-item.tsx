@@ -169,9 +169,9 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
       fromFileUrl: !!file.url
     });
     return (
-      <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
+      <div className="border-border group relative w-full aspect-square overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         {!isImageLoaded && (
-          <div className="bg-muted flex h-48 w-full animate-pulse items-center justify-center">
+          <div className="bg-muted flex h-full w-full animate-pulse items-center justify-center">
             <ImageIcon className="text-muted-foreground h-8 w-8" />
           </div>
         )}
@@ -179,7 +179,7 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
           src={imgSrc}
           alt={file.name}
           className={cn(
-            "w-full max-h-80 object-cover transition-opacity",
+            "w-full h-full object-cover transition-opacity",
             isImageLoaded ? "opacity-100" : "absolute opacity-0"
           )}
           onLoad={() => setIsImageLoaded(true)}
@@ -417,7 +417,7 @@ export function MessageItem({
             <div
               className={cn(
                 "mt-2 gap-2",
-                message.files.length === 1 ? "flex" : "grid max-w-md grid-cols-2 sm:grid-cols-3"
+                message.files.length === 1 ? "flex max-w-xs" : "grid max-w-md grid-cols-2"
               )}>
               {message.files.map((file, index) => (
                 <FileAttachment 
