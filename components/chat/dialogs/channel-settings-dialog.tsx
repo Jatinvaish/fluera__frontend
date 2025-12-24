@@ -31,6 +31,7 @@ interface ChannelSettingsDialogProps {
   channelName: string
   description?: string
   isPrivate?: boolean
+  isDirect?: boolean
   onUpdateChannel?: (name: string, description: string) => void
   onArchiveChannel?: () => void
   onLeaveChannel?: () => void
@@ -42,6 +43,7 @@ export function ChannelSettingsDialog({
   channelName,
   description = "",
   isPrivate = false,
+  isDirect = false,
   onUpdateChannel,
   onArchiveChannel,
   onLeaveChannel,
@@ -69,8 +71,8 @@ export function ChannelSettingsDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Channel settings</DialogTitle>
-            <DialogDescription>Manage channel information and preferences</DialogDescription>
+            <DialogTitle>{isDirect ? "Chat" : "Channel"} settings</DialogTitle>
+            <DialogDescription>Manage {isDirect ? "chat" : "channel"} information and preferences</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -95,16 +97,18 @@ export function ChannelSettingsDialog({
                   className="w-full justify-start text-destructive hover:text-destructive"
                 >
                   <Archive className="mr-2 h-4 w-4" />
-                  Archive channel
+                  Archive {isDirect ? "chat" : "channel"}
                 </Button>
-                <Button
-                  onClick={() => setShowLeaveDialog(true)}
-                  variant="outline"
-                  className="w-full justify-start text-destructive hover:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Leave channel
-                </Button>
+                {!isDirect && (
+                  <Button
+                    onClick={() => setShowLeaveDialog(true)}
+                    variant="outline"
+                    className="w-full justify-start text-destructive hover:text-destructive"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Leave channel
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -120,9 +124,9 @@ export function ChannelSettingsDialog({
       <AlertDialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive channel?</AlertDialogTitle>
+            <AlertDialogTitle>Archive {isDirect ? "chat" : "channel"}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This channel will be archived and hidden from everyone's channel list. This action can be undone.
+              This {isDirect ? "chat" : "channel"} will be archived and hidden from everyone's {isDirect ? "chat" : "channel"} list. This action can be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

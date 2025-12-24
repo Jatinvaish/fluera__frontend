@@ -71,11 +71,6 @@ export function ThreadSidebar({
       reactions: msg.reactions || [],
       threadReplies: msg.reply_count || 0,
       files: msg.files || [],
-      replyTo: msg.reply_to_message_id ? {
-        messageId: msg.reply_to_message_id.toString(),
-        authorName: msg.reply_to_author_name || "User",
-        content: msg.reply_to_content || "Previous message"
-      } : undefined,
       read_count: msg.read_count,
       delivered_count: msg.delivered_count,
       read_by_user_ids: msg.read_by_user_ids,
@@ -87,8 +82,6 @@ export function ThreadSidebar({
   };
 
   const transformedMessages = threadMessages.map(convertToFrontendMessage);
-  const parentMessage = transformedMessages.length > 0 ? transformedMessages[0] : null;
-  const replies = transformedMessages.slice(1);
 
   const handleSend = async (html: string, text: string, mentions?: number[]): Promise<boolean> => {
     if (!text.trim() || !parentMessageId) return false;
@@ -121,7 +114,7 @@ export function ThreadSidebar({
             Thread
           </h3>
           <p className="text-xs text-muted-foreground">
-            {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
+            {transformedMessages.length} {transformedMessages.length === 1 ? 'reply' : 'replies'}
           </p>
         </div>
         <Button
@@ -148,47 +141,20 @@ export function ThreadSidebar({
               <p className="text-xs">Start the conversation!</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Parent Message */}
-              {parentMessage && (
-                <div className="pb-4 border-b border-border">
-                  <div className="text-xs text-muted-foreground mb-2 font-medium">
-                    Original message
-                  </div>
-                  <MessageItem
-                    message={parentMessage}
-                    isOwn={parentMessage.authorId === currentUserId}
-                    isDirect={false}
-                    currentUserId={currentUserId}
-                    onReply={() => {}}
-                    onReact={() => {}}
-                    onOpenThread={() => {}}
-                    isInThread={true}
-                  />
-                </div>
-              )}
-              
-              {/* Thread Replies */}
-              {replies.length > 0 && (
-                <div className="space-y-0">
-                  <div className="text-xs text-muted-foreground mb-2 font-medium">
-                    Replies
-                  </div>
-                  {replies.map((message) => (
-                    <MessageItem
-                      key={message.id}
-                      message={message}
-                      isOwn={message.authorId === currentUserId}
-                      isDirect={false}
-                      currentUserId={currentUserId}
-                      onReply={() => {}}
-                      onReact={() => {}}
-                      onOpenThread={() => {}}
-                      isInThread={true}
-                    />
-                  ))}
-                </div>
-              )}
+            <div className="space-y-0">
+              {transformedMessages.map((message) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  isOwn={message.authorId === currentUserId}
+                  isDirect={false}
+                  currentUserId={currentUserId}
+                  onReply={() => {}}
+                  onReact={() => {}}
+                  onOpenThread={() => {}}
+                  isInThread={true}
+                />
+              ))}
             </div>
           )}
         </div>

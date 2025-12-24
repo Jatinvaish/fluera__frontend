@@ -10,7 +10,6 @@ import {
   addTypingUser,
   removeTypingUser,
   incrementUnreadCount,
-  updateMessageDeliveryStatus,
   updateMessageReadStatus,
   addReactionToMessage,
   removeReactionFromMessage,
@@ -29,7 +28,6 @@ interface UseWebSocketReturn {
   sendMessage: (data: SendMessagePayload) => Promise<boolean>;
   startTyping: (channelId: number) => void;
   stopTyping: (channelId: number) => void;
-  markAsDelivered: (messageId: number, channelId: number) => void;
   markAsRead: (messageId: number, channelId: number) => void;
   addReaction: (messageId: number, emoji: string, channelId: number) => void;
   removeReaction: (messageId: number, emoji: string, channelId: number) => void;
@@ -185,18 +183,6 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
           );
           break;
 
-        case "message_delivered":
-          console.log("✅ MESSAGE DELIVERED - RAW:", data);
-          dispatch(
-            updateMessageDeliveryStatus({
-              messageId: data.messageId,
-              deliveredBy: parseInt(data.deliveredBy) || data.deliveredBy,
-              deliveredCount: parseInt(data.deliveredCount) || data.deliveredCount,
-              timestamp: data.timestamp
-            })
-          );
-          break;
-
         case "message_read":
           console.log("📖 MESSAGE READ - RAW:", data);
           dispatch(
@@ -335,11 +321,7 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
     socketRef.current.emit("typing_stop", { channelId });
   }, []);
 
-  const markAsDelivered = useCallback((messageId: number, channelId: number) => {
-    if (!socketRef.current?.connected) return;
-    socketRef.current.emit("mark_as_delivered", { messageId, channelId });
-  }, []);
-
+ 
   const markAsRead = useCallback((messageId: number, channelId: number) => {
     if (!socketRef.current?.connected) return;
     socketRef.current.emit("mark_as_read", { messageId, channelId });
@@ -424,7 +406,6 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
     sendMessage,
     startTyping,
     stopTyping,
-    markAsDelivered,
     markAsRead,
     addReaction,
     removeReaction,
