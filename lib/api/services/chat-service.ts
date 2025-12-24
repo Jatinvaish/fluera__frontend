@@ -566,7 +566,7 @@ export class ChatService {
    */
   static async getFileDownloadUrl(attachmentId: number): Promise<FileDownloadInfo> {
     console.log('🔵 [CHAT-SERVICE] getFileDownloadUrl called for:', attachmentId);
-    
+
     // Check cache first
     const cached = this.signedUrlCache.get(attachmentId);
     if (cached && cached.expires > Date.now()) {
@@ -585,7 +585,7 @@ export class ChatService {
 
     console.log('🔵 [CHAT-SERVICE] Fetching new signed URL from API for:', attachmentId);
     // Fetch new signed URL
-    const result:any = extractData(
+    const result: any = extractData(
       await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.FILE_DOWNLOAD(attachmentId))
     );
 
@@ -669,7 +669,7 @@ export class ChatService {
     if (mimeType.includes("powerpoint") || mimeType.includes("presentation")) return "📊";
     if (mimeType.includes("zip") || mimeType.includes("rar") || mimeType.includes("archive")) return "📦";
     if (mimeType.startsWith("text/") || mimeType.includes("json")) return "📝";
-    
+
     // Check by file extension if mime type is generic
     if (fileName) {
       const ext = fileName.toLowerCase();
@@ -683,7 +683,7 @@ export class ChatService {
       if (ext.match(/\.(zip|rar|7z|tar|gz)$/)) return "📦";
       if (ext.match(/\.(js|ts|jsx|tsx|css|html|json|xml|yaml|yml)$/)) return "💻";
     }
-    
+
     return "📎";
   }
 
@@ -735,12 +735,12 @@ export class ChatService {
    * ✅ Check if file is text-based
    */
   static isTextFile(mimeType: string, fileName?: string): boolean {
-    if (mimeType.startsWith("text/") || 
-        mimeType.includes("json") ||
-        mimeType.includes("xml") ||
-        mimeType.includes("javascript") ||
-        mimeType.includes("css")) return true;
-    
+    if (mimeType.startsWith("text/") ||
+      mimeType.includes("json") ||
+      mimeType.includes("xml") ||
+      mimeType.includes("javascript") ||
+      mimeType.includes("css")) return true;
+
     if (fileName) {
       return /\.(txt|md|json|xml|csv|log|js|ts|jsx|tsx|css|html|htm|yaml|yml|ini|conf|cfg|py|java|cpp|c|h|php|rb|go|rs|swift|kt)$/i.test(fileName);
     }
@@ -821,19 +821,7 @@ export class ChatService {
     return encryptedApiClient.delete(API_ENDPOINTS.CHAT.MESSAGES.DELETE(messageId));
   }
 
-  static async markAsRead(channelId: number, messageId: number): Promise<any> {
-    return encryptedApiClient.post(API_ENDPOINTS.CHAT.MESSAGES.MARK_READ, {
-      channelId,
-      messageId
-    });
-  }
 
-  static async bulkMarkAsRead(channelId: number, upToMessageId: number): Promise<any> {
-    return encryptedApiClient.post(API_ENDPOINTS.CHAT.MESSAGES.BULK_MARK_READ, {
-      channelId,
-      upToMessageId
-    });
-  }
 
   static async pinMessage(messageId: number, isPinned: boolean): Promise<any> {
     return encryptedApiClient.post(API_ENDPOINTS.CHAT.MESSAGES.PIN, {
@@ -1122,28 +1110,10 @@ export class ChatService {
   static async getOnlineUsers(): Promise<number[]> {
     return extractData(await encryptedApiClient.get(API_ENDPOINTS.CHAT.PRESENCE.ONLINE_USERS));
   }
-
-  // ==================== DELIVERY & READ STATUS ====================
-
-  static async updateDeliveryStatus(messageId: number, status: "delivered" | "read"): Promise<any> {
-    return encryptedApiClient.post(API_ENDPOINTS.CHAT.MESSAGES.DELIVERY_STATUS(messageId), {
-      status
-    });
-  }
-
-  static async markAsDelivered(messageId: number): Promise<any> {
-    return encryptedApiClient.post(API_ENDPOINTS.CHAT.MESSAGES.MARK_DELIVERED(messageId));
-  }
-
-  static async getMessageReadStatus(messageId: number): Promise<MessageReadStatus> {
-    return extractData(
-      await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.READ_STATUS(messageId))
+  static async markChannelAsRead(channelId: number): Promise<{ success: boolean; markedCount: number }> {
+    const response = await encryptedApiClient.post(
+      API_ENDPOINTS.CHAT.CHANNELS.MARK_ALL_READ(channelId)
     );
-  }
-
-  static async getDetailedReadStatus(messageId: number): Promise<MessageReadStatus> {
-    return extractData(
-      await encryptedApiClient.get(API_ENDPOINTS.CHAT.MESSAGES.READ_STATUS_DETAILED(messageId))
-    );
+    return extractData(response);
   }
 }

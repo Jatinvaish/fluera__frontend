@@ -30,19 +30,12 @@ export const API_ENDPOINTS = {
       LIST: "/chat/messages",
       EDIT: (id: number) => `/chat/messages/${id}`,
       DELETE: (id: number) => `/chat/messages/${id}`,
-      MARK_READ: "/chat/messages/mark-read",
-      BULK_MARK_READ: "/chat/messages/bulk-mark-read",
       PIN: "/chat/messages/pin",
       PINNED: "/chat/messages/pinned",
       FORWARD: "/chat/messages/forward",
       DETAILS: (messageId: number) => `/chat/messages/${messageId}/details`,
       ATTACHMENTS: (messageId: number) => `/chat/messages/${messageId}/attachments`,
       REACTIONS_LIST: (messageId: number) => `/chat/messages/${messageId}/reactions`,
-      DELIVERY_STATUS: (messageId: number) => `/chat/messages/${messageId}/delivery-status`,
-      MARK_DELIVERED: (messageId: number) => `/chat/messages/${messageId}/mark-delivered`,
-      READ_STATUS: (messageId: number) => `/chat/messages/${messageId}/read-status`,
-      READ_STATUS_DETAILED: (messageId: number) =>
-        `/chat/messages/${messageId}/read-status-detailed`,
       // ✅ File Upload Endpoints
       UPLOAD: "/chat/messages/upload",
       UPLOAD_MULTIPLE: "/chat/messages/upload-multiple",
@@ -80,7 +73,8 @@ export const API_ENDPOINTS = {
       LEAVE: (id: number) => `/chat/channels/${id}/leave`,
       PIN: (id: number) => `/chat/channels/${id}/pin`,
       MUTE: (id: number) => `/chat/channels/${id}/mute`,
-      FILES: (id: number) => `/chat/channels/${id}/files`
+      FILES: (id: number) => `/chat/channels/${id}/files`,
+      MARK_ALL_READ: (id: number) => `/chat/channels/${id}/mark-all-read`, // ✅ NEW
     },
 
     // ✅ Channel Members - Aligned with chat.controller.ts

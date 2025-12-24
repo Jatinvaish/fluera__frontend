@@ -164,6 +164,21 @@ export const deleteAttachment = createAsyncThunk<
     }
   }
 );
+export const markChannelAsRead = createAsyncThunk<
+  { channelId: number; markedCount: number }, // Return type
+  number, // Argument type
+  { rejectValue: string }  
+>(
+  'chat/markChannelAsRead',
+  async (channelId, { rejectWithValue }) => {
+    try {
+      const result = await ChatService.markChannelAsRead(channelId);
+      return { channelId, markedCount: result.markedCount };
+    } catch (e: any) {
+      return rejectWithValue(e?.message || 'Failed to mark as read');
+    }
+  }
+);
 
 // ==================== ASYNC THUNKS ====================
 
@@ -358,21 +373,7 @@ export const fetchUnreadCount = createAsyncThunk<number, void>(
     }
   }
 );
-
-export const markAsRead = createAsyncThunk<
-  { channelId: number },
-  { channelId: number; messageId: number }
->(
-  'chat/markAsRead',
-  async ({ channelId, messageId }, { rejectWithValue }) => {
-    try {
-      await ChatService.markAsRead(channelId, messageId);
-      return { channelId };
-    } catch (e: any) {
-      return rejectWithValue(e?.message || 'Failed to mark as read');
-    }
-  }
-);
+ 
 
 export const forwardMessage = createAsyncThunk(
   'chat/forwardMessage',
@@ -602,37 +603,6 @@ const chatSlice = createSlice({
 
 
     // Delivery & Read Status
-    updateMessageDeliveryStatus: (state, action: PayloadAction<{
-      messageId: number;
-      deliveredBy: number | string;
-      deliveredCount?: number | string;
-      timestamp?: string;
-    }>) => {
-      const { messageId, deliveredBy, deliveredCount, timestamp } = action.payload;
-
-      for (const channelId in state.messages) {
-        const messages = state.messages[channelId];
-        const message = messages.find(m => Number(m.id) === Number(messageId));
-
-        if (message) {
-          message.is_delivered = true;
-          message.delivered_count = typeof deliveredCount === 'string' ? parseInt(deliveredCount) : deliveredCount;
-
-          if (!message.delivered_to_user_ids) {
-            message.delivered_to_user_ids = String(deliveredBy);
-          } else {
-            const deliveredArray = message.delivered_to_user_ids.split(',').map(id => id.trim());
-            const deliveredByStr = String(deliveredBy);
-            if (!deliveredArray.includes(deliveredByStr)) {
-              message.delivered_to_user_ids = [...deliveredArray, deliveredByStr].join(',');
-            }
-          }
-          return;
-        }
-      }
-    },
-
-
 
     updateMessageReadStatus: (state, action: PayloadAction<{
       messageId: number;
@@ -664,6 +634,32 @@ const chatSlice = createSlice({
         }
       }
     },
+
+    // ✅ ADD: Mark all messages in channel as read (for local state update)
+    markAllChannelMessagesAsRead: (state, action: PayloadAction<{
+      channelId: number;
+      userId: number;
+    }>) => {
+      const { channelId, userId } = action.payload;
+      const messages = state.messages[channelId];
+
+      if (!messages) return;
+
+      const userIdStr = userId.toString();
+
+      messages.forEach(message => {
+        if (message.sender_user_id !== userId) {
+          message.is_read_by_me = true;
+
+          if (!message.read_by_user_ids) {
+            message.read_by_user_ids = userIdStr;
+          } else if (!message.read_by_user_ids.includes(userIdStr)) {
+            message.read_by_user_ids += ',' + userIdStr;
+          }
+        }
+      });
+    },
+
 
 
     // Thread Updates
@@ -952,6 +948,22 @@ const chatSlice = createSlice({
       .addCase(uploadMultipleMessageFiles.fulfilled, (state) => {
         state.isUploading = false;
       })
+      .addCase(markChannelAsRead.pending, (state) => {
+        // Optional: Add loading state
+      })
+      .addCase(markChannelAsRead.fulfilled, (state, action) => {
+        const { channelId } = action.payload;
+
+        // Reset channel unread count
+        const channel = state.channels.find(c => c.id === channelId);
+        if (channel) {
+          state.unreadCount = Math.max(0, state.unreadCount - channel.unread_count);
+          channel.unread_count = 0;
+        }
+      })
+      .addCase(markChannelAsRead.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
       .addCase(uploadMultipleMessageFiles.rejected, (state, action) => {
         state.isUploading = false;
         state.error = action.payload as string;
@@ -970,7 +982,6 @@ export const {
   incrementUnreadCount,
   resetUnreadCount,
   resetChatState,
-  updateMessageDeliveryStatus,
   updateMessageReadStatus,
   updateThreadReplyCount,
   addMembersToChannel,
