@@ -59,13 +59,15 @@ const MessageReadStatus = ({ message, isOwn }: { message: any; isOwn: boolean })
               <CheckCheck className="h-3.5 w-3.5 text-blue-500" strokeWidth={2.5} />
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">
-              Read by {readCount} {readCount === 1 ? "person" : "people"}
-            </p>
-          </TooltipContent>
+          {readCount > 0 &&
+            <TooltipContent>
+              <p className="text-xs">
+                Read by {readCount} {readCount === 1 ? "person" : "people"}
+              </p>
+            </TooltipContent>
+          }
         </Tooltip>
-      </TooltipProvider>
+      </TooltipProvider >
     );
   }
 
