@@ -59,6 +59,7 @@ const ChatPage = () => {
   const error = useAppSelector((state) => state.chat.error);
   const successMessage = useAppSelector((state) => state.chat.successMessage);
 
+
   const currentUser = useAppSelector(selectUser);
   const token = useAppSelector((state) => state.auth.accessToken);
 
@@ -256,6 +257,7 @@ const ChatPage = () => {
         : undefined,
       is_sent: true,
       is_delivered: (msg.delivered_count || 0) > 0,
+      is_deleted: (msg.is_deleted || false),
       is_read: (msg.read_count || 0) > 0,
       read_count: msg.read_count,
       delivered_count: msg.delivered_count,

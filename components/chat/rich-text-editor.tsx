@@ -265,6 +265,7 @@ export function RichTextEditor({
       Underline,
       Strike.configure({ HTMLAttributes: { class: "line-through" } }),
       Mention.configure({
+        deleteTriggerWithBackspace: true,
         HTMLAttributes: {
           class: "text-primary bg-primary/10 px-1 py-0.5 rounded font-semibold"
         },
@@ -338,7 +339,7 @@ export function RichTextEditor({
         }
       }, 3000);
     }
-  });
+  }, [teamMembers]);
 
   useEffect(() => {
     return () => {
