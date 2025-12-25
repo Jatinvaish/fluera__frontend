@@ -221,6 +221,9 @@ export function RichTextEditor({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+    console.table(teamMembers)
+  
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -265,6 +268,7 @@ export function RichTextEditor({
       Underline,
       Strike.configure({ HTMLAttributes: { class: "line-through" } }),
       Mention.configure({
+        deleteTriggerWithBackspace: true,
         HTMLAttributes: {
           class: "text-primary bg-primary/10 px-1 py-0.5 rounded font-semibold"
         },
@@ -338,7 +342,7 @@ export function RichTextEditor({
         }
       }, 3000);
     }
-  });
+  }, [teamMembers]);
 
   useEffect(() => {
     return () => {

@@ -59,6 +59,7 @@ const ChatPage = () => {
   const error = useAppSelector((state) => state.chat.error);
   const successMessage = useAppSelector((state) => state.chat.successMessage);
 
+
   const currentUser = useAppSelector(selectUser);
   const token = useAppSelector((state) => state.auth.accessToken);
 
