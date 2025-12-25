@@ -35,6 +35,7 @@ export interface Message {
   threadId?: string;
   parentId?: string;
   is_sent?: boolean;
+  is_deleted?: boolean;
   is_delivered?: boolean;
   is_read?: boolean;
   read_count?: number;
