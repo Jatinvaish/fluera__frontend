@@ -4,8 +4,6 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { MessageItem } from "./message-item";
 
-// components/chat/message-list.tsx - Update Message interface
-
 export interface Message {
   id: string;
   authorId: string;
@@ -16,7 +14,6 @@ export interface Message {
   edited?: boolean;
   reactions?: any[];
   threadReplies?: number;
-  // ✅ Updated files interface
   files?: Array<{
     id?: number;
     name: string;
@@ -235,9 +232,9 @@ export function MessageList({
   return (
     <div
       ref={scrollRef}
-      className="bg-background flex-1 space-y-0 overflow-y-auto px-0 py-3 lg:px-6 lg:py-4">
+      className="bg-background flex-1 space-y-0 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 lg:px-6 lg:py-4">
       {messages.length === 0 ? (
-        <div className="text-muted-foreground flex h-full items-center justify-center">
+        <div className="text-muted-foreground flex h-full items-center justify-center px-4">
           <div className="text-center">
             <p className="mb-1 text-sm font-medium">No messages yet</p>
             <p className="text-xs">Start the conversation!</p>
@@ -246,9 +243,9 @@ export function MessageList({
       ) : (
         groupedMessages.map((group, groupIndex) => (
           <div key={groupIndex} className="space-y-0">
-            <div className="my-4 flex items-center gap-3 px-4 lg:px-6">
+            <div className="my-4 flex items-center gap-2 px-2 sm:gap-3 sm:px-4 lg:px-6">
               <div className="bg-border h-px flex-1"></div>
-              <span className="text-muted-foreground px-2 text-xs font-medium">
+              <span className="text-muted-foreground whitespace-nowrap px-2 text-xs font-medium">
                 {formatDate(group.date)}
               </span>
               <div className="bg-border h-px flex-1"></div>
