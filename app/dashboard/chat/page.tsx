@@ -934,7 +934,7 @@ const ChatPage = () => {
               onTypingStart={handleTypingStart}
               onTypingStop={handleTypingStop}
               placeholder={`Message ${isDirect ? currentChannelDisplayName : "#" + currentChannelDisplayName}`}
-              teamMembers={teamMembersForMentions}
+              teamMembers={isDirect ? [] : teamMembersForMentions}
               disabled={!isConnected}
               channelId={selectedChannel?.id}
             />
@@ -959,7 +959,7 @@ const ChatPage = () => {
           currentUserId={currentUser?.id.toString()}
           onClose={() => setShowThreadSidebar(false)}
           onReplyInThread={handleReplyInThread}
-          teamMembers={teamMembersForMentions}
+          teamMembers={isDirect ? [] : teamMembersForMentions}
         />
       )}
 

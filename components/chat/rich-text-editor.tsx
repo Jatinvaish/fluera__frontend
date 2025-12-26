@@ -264,58 +264,60 @@ export function RichTextEditor({
       }),
       Underline,
       Strike.configure({ HTMLAttributes: { class: "line-through" } }),
-      Mention.configure({
-        deleteTriggerWithBackspace: true,
-        HTMLAttributes: {
-          class: "text-primary bg-primary/10 px-1 py-0.5 rounded font-semibold"
-        },
-        renderLabel({ node }) {
-          return `@${node.attrs.label}`;
-        },
-        suggestion: {
-          items: ({ query }) =>
-            teamMembers
-              .filter((m) => m.name.toLowerCase().includes(query.toLowerCase()))
-              .slice(0, 5),
-          render: () => {
-            let component: ReactRenderer<any>;
-            let popup: TippyInstance[];
+      ...(teamMembers.length > 0 ? [
+        Mention.configure({
+          deleteTriggerWithBackspace: true,
+          HTMLAttributes: {
+            class: "text-primary bg-primary/10 px-1 py-0.5 rounded font-semibold"
+          },
+          renderLabel({ node }) {
+            return `@${node.attrs.label}`;
+          },
+          suggestion: {
+            items: ({ query }) =>
+              teamMembers
+                .filter((m) => m.name.toLowerCase().includes(query.toLowerCase()))
+                .slice(0, 5),
+            render: () => {
+              let component: ReactRenderer<any>;
+              let popup: TippyInstance[];
 
-            return {
-              onStart: (props) => {
-                component = new ReactRenderer(MentionList, {
-                  props,
-                  editor: props.editor
-                });
-                popup = tippy("body", {
-                  getReferenceClientRect: props.clientRect as any,
-                  appendTo: () => document.body,
-                  content: component.element,
-                  showOnCreate: true,
-                  interactive: true,
-                  trigger: "manual",
-                  placement: "bottom-start"
-                });
-              },
-              onUpdate(props) {
-                component.updateProps(props);
-                popup[0].setProps({ getReferenceClientRect: props.clientRect as any });
-              },
-              onKeyDown(props) {
-                if (props.event.key === "Escape") {
-                  popup[0].hide();
-                  return true;
+              return {
+                onStart: (props) => {
+                  component = new ReactRenderer(MentionList, {
+                    props,
+                    editor: props.editor
+                  });
+                  popup = tippy("body", {
+                    getReferenceClientRect: props.clientRect as any,
+                    appendTo: () => document.body,
+                    content: component.element,
+                    showOnCreate: true,
+                    interactive: true,
+                    trigger: "manual",
+                    placement: "bottom-start"
+                  });
+                },
+                onUpdate(props) {
+                  component.updateProps(props);
+                  popup[0].setProps({ getReferenceClientRect: props.clientRect as any });
+                },
+                onKeyDown(props) {
+                  if (props.event.key === "Escape") {
+                    popup[0].hide();
+                    return true;
+                  }
+                  return component.ref?.onKeyDown(props) || false;
+                },
+                onExit() {
+                  popup[0].destroy();
+                  component.destroy();
                 }
-                return component.ref?.onKeyDown(props) || false;
-              },
-              onExit() {
-                popup[0].destroy();
-                component.destroy();
-              }
-            };
+              };
+            }
           }
-        }
-      })
+        })
+      ] : [])
     ],
     editorProps: {
       attributes: {
@@ -858,15 +860,17 @@ export function RichTextEditor({
 
               <div className="bg-border mx-0.5 hidden h-4 w-px sm:mx-1 sm:block sm:h-5" />
 
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={insertMention}
-                disabled={disabled}
-                className="h-6 w-6 p-0 sm:h-7 sm:w-7"
-                title="Mention (@)">
-                <AtSign className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              </Button>
+              {teamMembers.length > 0 && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={insertMention}
+                  disabled={disabled}
+                  className="h-6 w-6 p-0 sm:h-7 sm:w-7"
+                  title="Mention (@)">
+                  <AtSign className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                </Button>
+              )}
               <EmojiPopover onEmojiSelect={insertEmoji} disabled={disabled} />
 
               {/* File Upload Button */}
@@ -904,7 +908,7 @@ export function RichTextEditor({
                   }
                 }}
                 disabled={disabled || isUploading || !channelId}
-                className="h-6 w-6 p-0 sm:h-7 sm:w-3"
+                className="h-6 w-6 p-0 sm:h-7 sm:w-7"
                 title={channelId ? "Add image" : "Select a channel first"}>
                 <ImageIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </Button>
