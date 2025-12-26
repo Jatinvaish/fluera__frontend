@@ -15,10 +15,12 @@ interface ChatHeaderProps {
   isPinned?: boolean
   isMuted?: boolean
   isDirect?: boolean
+  isOwner?: boolean
   onInfoClick?: () => void
   onUpdateChannel?: (name: string, description: string) => void
   onArchiveChannel?: () => void
   onLeaveChannel?: () => void
+  onDeleteChannel?: () => void
   onInviteUsers?: () => void
   onMembersClick?: () => void
   onSearchClick?: () => void
@@ -35,10 +37,12 @@ export function ChatHeader({
   isPinned = false,
   isMuted = false,
   isDirect = false,
+  isOwner = false,
   onInfoClick,
   onUpdateChannel,
   onArchiveChannel,
   onLeaveChannel,
+  onDeleteChannel,
   onInviteUsers,
   onMembersClick,
   onSearchClick,
@@ -107,9 +111,11 @@ export function ChatHeader({
         description={description}
         isPrivate={isPrivate}
         isDirect={isDirect}
+        isOwner={isOwner}
         onUpdateChannel={onUpdateChannel}
         onArchiveChannel={onArchiveChannel}
         onLeaveChannel={onLeaveChannel}
+        onDeleteChannel={onDeleteChannel}
       />
       <PinDialog
         open={pinOpen}

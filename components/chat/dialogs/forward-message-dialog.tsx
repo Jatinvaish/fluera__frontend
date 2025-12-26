@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Hash, Lock, Forward, Loader2, X } from "lucide-react";
+import { Search, Hash, Lock, Forward, Loader2, X, MessageSquare } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { forwardMessage } from "@/store/slices/chatSlice";
 import toast from "react-hot-toast";
@@ -88,9 +88,10 @@ export function ForwardMessageDialog({
 
         <div className="space-y-4">
           <div className="rounded-lg border border-border bg-muted/50 p-3">
-            <p className="text-sm text-muted-foreground line-clamp-3">
-              {messageContent}
-            </p>
+            <div 
+              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm dark:prose-invert max-w-none [&_code]:bg-muted/60 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono"
+              dangerouslySetInnerHTML={{ __html: messageContent }}
+            />
           </div>
 
           <div className="relative">
@@ -122,7 +123,11 @@ export function ForwardMessageDialog({
                       onCheckedChange={() => handleToggleChannel(channel.id)}
                     />
                     <div className="flex items-center gap-2 flex-1">
-                      {channel.is_private ? (
+                      {channel.channel_type === "direct" ? (
+                        <div className="h-6 w-6 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
+                          {channel.name?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                      ) : channel.is_private ? (
                         <Lock className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Hash className="h-4 w-4 text-muted-foreground" />

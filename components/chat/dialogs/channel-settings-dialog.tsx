@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Archive, LogOut } from "lucide-react"
+import { Archive, LogOut, Trash2 } from "lucide-react"
 
 interface ChannelSettingsDialogProps {
   open: boolean
@@ -32,9 +32,11 @@ interface ChannelSettingsDialogProps {
   description?: string
   isPrivate?: boolean
   isDirect?: boolean
+  isOwner?: boolean
   onUpdateChannel?: (name: string, description: string) => void
   onArchiveChannel?: () => void
   onLeaveChannel?: () => void
+  onDeleteChannel?: () => void
 }
 
 export function ChannelSettingsDialog({
@@ -44,14 +46,17 @@ export function ChannelSettingsDialog({
   description = "",
   isPrivate = false,
   isDirect = false,
+  isOwner = false,
   onUpdateChannel,
   onArchiveChannel,
   onLeaveChannel,
+  onDeleteChannel,
 }: ChannelSettingsDialogProps) {
   const [name, setName] = React.useState(channelName)
   const [desc, setDesc] = React.useState(description)
   const [showArchiveDialog, setShowArchiveDialog] = React.useState(false)
   const [showLeaveDialog, setShowLeaveDialog] = React.useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false)
 
   // Update local state when dialog opens or props change
   React.useEffect(() => {
@@ -100,14 +105,25 @@ export function ChannelSettingsDialog({
                   Archive {isDirect ? "chat" : "channel"}
                 </Button>
                 {!isDirect && (
-                  <Button
-                    onClick={() => setShowLeaveDialog(true)}
-                    variant="outline"
-                    className="w-full justify-start text-destructive hover:text-destructive"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Leave channel
-                  </Button>
+                  isOwner ? (
+                    <Button
+                      onClick={() => setShowDeleteDialog(true)}
+                      variant="outline"
+                      className="w-full justify-start text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete channel
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setShowLeaveDialog(true)}
+                      variant="outline"
+                      className="w-full justify-start text-destructive hover:text-destructive"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Leave channel
+                    </Button>
+                  )
                 )}
               </div>
             </div>
@@ -164,6 +180,30 @@ export function ChannelSettingsDialog({
               className="bg-destructive hover:bg-destructive/90"
             >
               Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete channel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete #{channelName} and all its messages. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDeleteChannel?.()
+                setShowDeleteDialog(false)
+                onOpenChange(false)
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

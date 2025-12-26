@@ -41,6 +41,7 @@ import {
   MessageType,
   SendMessagePayload
 } from "@/lib/api/services/chat-service";
+import { EncryptionService } from "@/lib/utils/encryption";
 
 const ChatPage = () => {
   const dispatch = useAppDispatch();
@@ -117,12 +118,15 @@ const ChatPage = () => {
 
   // Restore channel from URL
   useEffect(() => {
-    const id = searchParams.get('id');
-    if (id && channels.length > 0 && !selectedChannel) {
-      const channel = channels.find(c => c.id === parseInt(id));
-      if (channel) {
-        dispatch(setSelectedChannel(channel));
-        setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
+    const encryptedId = searchParams.get('id');
+    if (encryptedId && channels.length > 0 && !selectedChannel) {
+      const decryptedId = EncryptionService.decrypt(encryptedId);
+      if (decryptedId) {
+        const channel = channels.find(c => c.id === parseInt(decryptedId));
+        if (channel) {
+          dispatch(setSelectedChannel(channel));
+          setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
+        }
       }
     }
   }, [searchParams, channels, selectedChannel, dispatch]);
@@ -130,7 +134,8 @@ const ChatPage = () => {
   // Update URL when channel changes
   useEffect(() => {
     if (selectedChannel) {
-      router.replace(`/dashboard/chat?id=${selectedChannel.id}`, { scroll: false });
+      const encryptedId = EncryptionService.encrypt(selectedChannel.id);
+      router.replace(`/dashboard/chat?id=${encryptedId}`, { scroll: false });
     }
   }, [selectedChannel?.id, router]);
 
@@ -380,6 +385,13 @@ const ChatPage = () => {
     email: m.email
   }));
 
+  const isChannelOwner = React.useMemo(() => {
+    if (!selectedChannel || !currentUser) return false;
+    const members = channelMembers[selectedChannel.id] || [];
+    const currentMember = members.find((m) => m.user_id === currentUser.id);
+    return currentMember?.role === "owner";
+  }, [selectedChannel, currentUser, channelMembers]);
+
   const isChannelAdmin = React.useMemo(() => {
     if (!selectedChannel || !currentUser) return false;
     const members = channelMembers[selectedChannel.id] || [];
@@ -489,6 +501,18 @@ const ChatPage = () => {
       await dispatch(fetchUserChannels(100)).unwrap();
     } catch (e: any) {
       toast.error(e?.message || "Failed to archive channel");
+    }
+  }, [selectedChannel, dispatch]);
+
+  const handleDeleteChannel = useCallback(async () => {
+    if (!selectedChannel) return;
+    try {
+      await ChatService.deleteChannel(selectedChannel.id);
+      dispatch(setSelectedChannel(null));
+      await dispatch(fetchUserChannels(100)).unwrap();
+      toast.success("Channel deleted successfully");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to delete channel");
     }
   }, [selectedChannel, dispatch]);
 
@@ -853,10 +877,12 @@ const ChatPage = () => {
               isPinned={Boolean(selectedChannel.is_pinned)}
               isMuted={selectedChannel.is_muted}
               isDirect={isDirect}
+              isOwner={isChannelOwner}
               onPinChange={handlePinChannel}
               onUpdateChannel={handleUpdateChannel}
               onArchiveChannel={handleArchiveChannel}
               onLeaveChannel={handleLeaveChannel}
+              onDeleteChannel={handleDeleteChannel}
               onInviteUsers={isChannelAdmin && !isDirect ? () => setInviteDialogOpen(true) : undefined}
               onMembersClick={() => setMembersDialogOpen(true)}
               onSearchClick={() => setSearchDialogOpen(true)}
