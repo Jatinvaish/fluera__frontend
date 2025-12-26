@@ -27,7 +27,7 @@ import { useTheme } from "next-themes";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { selectUser } from "@/store/slices/authSlice";
+import { logout, selectUser } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/lib/api/services/auth-service";
 import { toast } from "sonner";
@@ -47,15 +47,14 @@ export function HeaderToolbar() {
   useEffect(() => setMounted(true), []);
 
   const toggleTheme = () => setTheme(theme === "light" ? "dark" : "light");
-
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await AuthService.logout();
+      await dispatch(logout()).unwrap();
       toast.success("Logged out successfully");
       router.push("/sign-in");
     } catch (error: any) {
-      toast.error(error?.message || "Logout failed");
+      toast.error(error || "Logout failed");
     } finally {
       setIsLoggingOut(false);
     }
