@@ -20,7 +20,7 @@ interface MessageActionsPopoverProps {
   onReply?: (messageId: string) => void
   onReplyInThread?: () => void
   onDelete?: (messageId: string) => void
-  onEdit?: () => void
+  onEdit?: (messageId: string, newContent: string) => void // ✅ FIX: Update type signature
   onPin?: (messageId: string, isPinned: boolean) => void
   onForward?: (messageId: string) => void
   onReact?: (messageId: string, emoji: string) => void
@@ -45,6 +45,8 @@ export function MessageActionsPopover({
   const [open, setOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false) // ✅ ADD: Edit dialog state
+  const [editContent, setEditContent] = useState("") // ✅ ADD: Edit content state
   const { resolvedTheme } = useTheme()
 
   // Helper function to strip HTML and get plain text
@@ -74,9 +76,22 @@ export function MessageActionsPopover({
     setOpen(false)
   }
 
+  // ✅ FIX: Update edit handler to open dialog
   const handleEdit = () => {
-    onEdit?.()
+    setEditContent(getPlainText(messageContent))
+    setEditDialogOpen(true)
     setOpen(false)
+  }
+
+  // ✅ ADD: Handle edit confirmation
+  const handleEditConfirm = () => {
+    if (editContent.trim()) {
+      onEdit?.(messageId, editContent.trim())
+      setEditDialogOpen(false)
+      setEditContent("")
+    } else {
+      toast.error("Message cannot be empty")
+    }
   }
 
   const handleDelete = () => {
@@ -223,6 +238,33 @@ export function MessageActionsPopover({
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* ✅ ADD: Edit Dialog */}
+      <AlertDialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit message</AlertDialogTitle>
+            <AlertDialogDescription>
+              Make changes to your message below.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              className="w-full min-h-[100px] p-3 rounded-md border border-border bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Type your message..."
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setEditContent("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEditConfirm}>
+              Save changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
