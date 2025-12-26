@@ -21,6 +21,7 @@ import { FilePreviewModal } from "./file-preview-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import DOMPurify from "dompurify";
 import { ChatService } from "@/lib/api/services/chat-service";
+import { RichTextEditor } from "./rich-text-editor";
 
 interface MessageItemProps {
   message: Message;
@@ -253,6 +254,8 @@ export function MessageItem({
 }: MessageItemProps) {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [previewFileIndex, setPreviewFileIndex] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
@@ -322,6 +325,27 @@ export function MessageItem({
       onOpenThread?.(message.id);
     }
   };
+
+  const handleEditClick = () => {
+    setEditContent(message.content);
+    setIsEditing(true);
+  };
+
+  const handleEditSave = async (html: string, text: string) => {
+    if (!text.trim()) return false;
+    await onEdit?.(message.id, html);
+    setIsEditing(false);
+    return true;
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditContent("");
+  };
+
+  useEffect(() => {
+    setIsEditing(false);
+  }, [message.id]);
 
   const groupedReactions = useMemo(() => {
     if (!message.reactions || message.reactions.length === 0) return [];
@@ -421,6 +445,24 @@ export function MessageItem({
                 This message was deleted
               </span>
             </div>
+          ) : isEditing ? (
+            <div className="mt-1 -ml-2">
+              <RichTextEditor
+                key={`edit-${message.id}`}
+                placeholder="Edit message..."
+                onSend={handleEditSave}
+                initialContent={editContent}
+                onCancel={handleEditCancel}
+                className="border-0 p-0"
+              />
+              <div className="mt-1 flex gap-2 text-xs">
+                <button
+                  onClick={handleEditCancel}
+                  className="text-muted-foreground hover:text-foreground">
+                  Press <kbd className="bg-muted rounded px-1">Esc</kbd> to cancel
+                </button>
+              </div>
+            </div>
           ) : (
             <>
               <div className="text-foreground mt-0.5 text-sm break-words">
@@ -516,7 +558,7 @@ export function MessageItem({
           onReply={onReply}
           onReplyInThread={handleReplyInThread}
           onDelete={onDelete}
-          onEdit={onEdit}
+          onEdit={handleEditClick}
           onPin={onPin}
           onReact={onReact}
           onForward={onForward}

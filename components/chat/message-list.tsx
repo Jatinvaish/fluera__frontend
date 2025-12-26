@@ -117,8 +117,8 @@ export function MessageList({
     const isOwnMessage = lastMessage?.authorId === currentUserId;
     const isAtBottom =
       scrollRef.current.scrollHeight -
-        scrollRef.current.scrollTop -
-        scrollRef.current.clientHeight <
+      scrollRef.current.scrollTop -
+      scrollRef.current.clientHeight <
       100;
 
     if (isNewMessage && (isOwnMessage || isAtBottom || !isUserScrollingRef.current)) {
@@ -232,6 +232,7 @@ export function MessageList({
   return (
     <div
       ref={scrollRef}
+      data-message-list
       className="bg-background flex-1 space-y-0 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 lg:px-6 lg:py-4">
       {messages.length === 0 ? (
         <div className="text-muted-foreground flex h-full items-center justify-center px-4">

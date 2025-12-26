@@ -41,6 +41,7 @@ import {
   MessageType,
   SendMessagePayload
 } from "@/lib/api/services/chat-service";
+import { EncryptionService } from "@/lib/utils/encryption";
 
 const ChatPage = () => {
   const dispatch = useAppDispatch();
@@ -117,12 +118,15 @@ const ChatPage = () => {
 
   // Restore channel from URL
   useEffect(() => {
-    const id = searchParams.get('id');
-    if (id && channels.length > 0 && !selectedChannel) {
-      const channel = channels.find(c => c.id === parseInt(id));
-      if (channel) {
-        dispatch(setSelectedChannel(channel));
-        setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
+    const encryptedId = searchParams.get('id');
+    if (encryptedId && channels.length > 0 && !selectedChannel) {
+      const decryptedId = EncryptionService.decrypt(encryptedId);
+      if (decryptedId) {
+        const channel = channels.find(c => c.id === parseInt(decryptedId));
+        if (channel) {
+          dispatch(setSelectedChannel(channel));
+          setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
+        }
       }
     }
   }, [searchParams, channels, selectedChannel, dispatch]);
@@ -130,7 +134,8 @@ const ChatPage = () => {
   // Update URL when channel changes
   useEffect(() => {
     if (selectedChannel) {
-      router.replace(`/dashboard/chat?id=${selectedChannel.id}`, { scroll: false });
+      const encryptedId = EncryptionService.encrypt(selectedChannel.id);
+      router.replace(`/dashboard/chat?id=${encryptedId}`, { scroll: false });
     }
   }, [selectedChannel?.id, router]);
 
@@ -148,12 +153,15 @@ const ChatPage = () => {
 
           await dispatch(fetchChannelMembers(selectedChannel.id)).unwrap();
 
-          // ✅ UPDATED: Mark entire channel as read via WebSocket
+          // ✅ CRITICAL: Mark channel as read via WebSocket immediately after loading
+          // This ensures read receipts are sent in real-time without refresh
           if (result?.messages && result.messages.length > 0 && isConnected) {
-            console.log('📖 Marking channel as read via WebSocket:', selectedChannel.id);
+            console.log('📖 Auto-marking channel as read:', selectedChannel.id);
 
-            // Send mark_as_read event with just channelId
-            markAsReadWS(0, selectedChannel.id); // messageId=0 means "mark all"
+            // ✅ Small delay to ensure messages are rendered
+            setTimeout(() => {
+              markAsReadWS(0, selectedChannel.id); // messageId=0 means "mark all"
+            }, 300);
           }
 
           dispatch(resetUnreadCount(selectedChannel.id));
@@ -165,6 +173,36 @@ const ChatPage = () => {
       loadChannelData();
     }
   }, [selectedChannel?.id, dispatch, isConnected, markAsReadWS]);
+
+  // ✅ NEW: Also mark as read when user scrolls through messages
+  // This handles the case where user already has messages loaded
+  useEffect(() => {
+    if (!selectedChannel || !isConnected) return;
+
+    const handleScroll = () => {
+      // Mark as read when user is actively viewing the channel
+      console.log('👁️ User viewing channel, marking as read:', selectedChannel.id);
+      markAsReadWS(0, selectedChannel.id);
+    };
+
+    // Debounce scroll handler
+    let scrollTimeout: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 1000);
+    };
+
+    // Listen to scroll events on message list
+    const messageList = document.querySelector('[data-message-list]');
+    if (messageList) {
+      messageList.addEventListener('scroll', debouncedScroll);
+      return () => {
+        messageList.removeEventListener('scroll', debouncedScroll);
+        clearTimeout(scrollTimeout);
+      };
+    }
+  }, [selectedChannel?.id, isConnected, markAsReadWS]);
+
 
   // Load Thread
   useEffect(() => {
@@ -381,6 +419,13 @@ const ChatPage = () => {
     email: m.email
   }));
 
+  const isChannelOwner = React.useMemo(() => {
+    if (!selectedChannel || !currentUser) return false;
+    const members = channelMembers[selectedChannel.id] || [];
+    const currentMember = members.find((m) => m.user_id === currentUser.id);
+    return currentMember?.role === "owner";
+  }, [selectedChannel, currentUser, channelMembers]);
+
   const isChannelAdmin = React.useMemo(() => {
     if (!selectedChannel || !currentUser) return false;
     const members = channelMembers[selectedChannel.id] || [];
@@ -490,6 +535,18 @@ const ChatPage = () => {
       await dispatch(fetchUserChannels(100)).unwrap();
     } catch (e: any) {
       toast.error(e?.message || "Failed to archive channel");
+    }
+  }, [selectedChannel, dispatch]);
+
+  const handleDeleteChannel = useCallback(async () => {
+    if (!selectedChannel) return;
+    try {
+      await ChatService.deleteChannel(selectedChannel.id);
+      dispatch(setSelectedChannel(null));
+      await dispatch(fetchUserChannels(100)).unwrap();
+      toast.success("Channel deleted successfully");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to delete channel");
     }
   }, [selectedChannel, dispatch]);
 
@@ -854,10 +911,12 @@ const ChatPage = () => {
               isPinned={Boolean(selectedChannel.is_pinned)}
               isMuted={selectedChannel.is_muted}
               isDirect={isDirect}
+              isOwner={isChannelOwner}
               onPinChange={handlePinChannel}
               onUpdateChannel={handleUpdateChannel}
               onArchiveChannel={handleArchiveChannel}
               onLeaveChannel={handleLeaveChannel}
+              onDeleteChannel={handleDeleteChannel}
               onInviteUsers={isChannelAdmin && !isDirect ? () => setInviteDialogOpen(true) : undefined}
               onMembersClick={() => setMembersDialogOpen(true)}
               onSearchClick={() => setSearchDialogOpen(true)}
@@ -908,7 +967,7 @@ const ChatPage = () => {
               onTypingStart={handleTypingStart}
               onTypingStop={handleTypingStop}
               placeholder={`Message ${isDirect ? currentChannelDisplayName : "#" + currentChannelDisplayName}`}
-              teamMembers={teamMembersForMentions}
+              teamMembers={isDirect ? [] : teamMembersForMentions}
               disabled={!isConnected}
               channelId={selectedChannel?.id}
             />
@@ -933,7 +992,7 @@ const ChatPage = () => {
           currentUserId={currentUser?.id.toString()}
           onClose={() => setShowThreadSidebar(false)}
           onReplyInThread={handleReplyInThread}
-          teamMembers={teamMembersForMentions}
+          teamMembers={isDirect ? [] : teamMembersForMentions}
         />
       )}
 
