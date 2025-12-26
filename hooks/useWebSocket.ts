@@ -185,17 +185,22 @@ export const useWebSocket = (token: string | null, userId: number | null): UseWe
 
 
         case "message_read":
+          console.log("📖 MESSAGE READ EVENT:", data);
+
+          // ✅ CRITICAL: Update read status in Redux for ALL users
+          // This allows everyone to see read receipts in real-time
           dispatch(
             updateMessageReadStatus({
               messageId: data.messageId,
-              channelId: data.channelId, // ✅ ADD channelId
+              channelId: data.channelId,
               readBy: parseInt(data.readBy) || data.readBy,
               readByName: data.readByName,
               readCount: parseInt(data.readCount) || data.readCount,
               timestamp: data.timestamp
             })
           );
-          break;
+
+
 
         case "thread_reply":
           console.log("🧵 THREAD REPLY:", data);

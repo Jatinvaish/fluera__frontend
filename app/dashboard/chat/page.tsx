@@ -153,12 +153,15 @@ const ChatPage = () => {
 
           await dispatch(fetchChannelMembers(selectedChannel.id)).unwrap();
 
-          // ✅ UPDATED: Mark entire channel as read via WebSocket
+          // ✅ CRITICAL: Mark channel as read via WebSocket immediately after loading
+          // This ensures read receipts are sent in real-time without refresh
           if (result?.messages && result.messages.length > 0 && isConnected) {
-            console.log('📖 Marking channel as read via WebSocket:', selectedChannel.id);
+            console.log('📖 Auto-marking channel as read:', selectedChannel.id);
 
-            // Send mark_as_read event with just channelId
-            markAsReadWS(0, selectedChannel.id); // messageId=0 means "mark all"
+            // ✅ Small delay to ensure messages are rendered
+            setTimeout(() => {
+              markAsReadWS(0, selectedChannel.id); // messageId=0 means "mark all"
+            }, 300);
           }
 
           dispatch(resetUnreadCount(selectedChannel.id));
@@ -170,6 +173,36 @@ const ChatPage = () => {
       loadChannelData();
     }
   }, [selectedChannel?.id, dispatch, isConnected, markAsReadWS]);
+
+  // ✅ NEW: Also mark as read when user scrolls through messages
+  // This handles the case where user already has messages loaded
+  useEffect(() => {
+    if (!selectedChannel || !isConnected) return;
+
+    const handleScroll = () => {
+      // Mark as read when user is actively viewing the channel
+      console.log('👁️ User viewing channel, marking as read:', selectedChannel.id);
+      markAsReadWS(0, selectedChannel.id);
+    };
+
+    // Debounce scroll handler
+    let scrollTimeout: NodeJS.Timeout;
+    const debouncedScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 1000);
+    };
+
+    // Listen to scroll events on message list
+    const messageList = document.querySelector('[data-message-list]');
+    if (messageList) {
+      messageList.addEventListener('scroll', debouncedScroll);
+      return () => {
+        messageList.removeEventListener('scroll', debouncedScroll);
+        clearTimeout(scrollTimeout);
+      };
+    }
+  }, [selectedChannel?.id, isConnected, markAsReadWS]);
+
 
   // Load Thread
   useEffect(() => {
