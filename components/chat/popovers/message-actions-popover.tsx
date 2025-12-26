@@ -4,17 +4,12 @@
 import React, { useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { MessageCircle, MoreVertical, Reply, Trash2, Edit, Pin, PinOff, Forward, Copy, Smile } from "lucide-react"
 import toast from "react-hot-toast"
-import dynamic from 'next/dynamic'
-
-const Picker = dynamic(
-  () => import('emoji-picker-react'),
-  { ssr: false }
-)
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+import { useTheme } from "next-themes"
 
 interface MessageActionsPopoverProps {
   isDirect?: boolean
@@ -25,7 +20,7 @@ interface MessageActionsPopoverProps {
   onReply?: (messageId: string) => void
   onReplyInThread?: () => void
   onDelete?: (messageId: string) => void
-  onEdit?: (messageId: string, newContent: string) => void
+  onEdit?: () => void
   onPin?: (messageId: string, isPinned: boolean) => void
   onForward?: (messageId: string) => void
   onReact?: (messageId: string, emoji: string) => void
@@ -48,10 +43,9 @@ export function MessageActionsPopover({
   isInThread = false,
 }: MessageActionsPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [editContent, setEditContent] = useState("")
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const { resolvedTheme } = useTheme()
 
   // Helper function to strip HTML and get plain text
   const getPlainText = (html: string): string => {
@@ -81,21 +75,8 @@ export function MessageActionsPopover({
   }
 
   const handleEdit = () => {
-    // Convert HTML to plain text for editing
-    const plainText = getPlainText(messageContent)
-    setEditContent(plainText)
-    setEditDialogOpen(true)
+    onEdit?.()
     setOpen(false)
-  }
-
-  const handleEditSubmit = () => {
-    const trimmedContent = editContent.trim()
-    const originalPlainText = getPlainText(messageContent)
-    
-    if (trimmedContent && trimmedContent !== originalPlainText) {
-      onEdit?.(messageId, trimmedContent)
-    }
-    setEditDialogOpen(false)
   }
 
   const handleDelete = () => {
@@ -118,8 +99,8 @@ export function MessageActionsPopover({
     setOpen(false)
   }
 
-  const handleEmojiSelect = (emojiData: any) => {
-    onReact?.(messageId, emojiData.emoji)
+  const handleEmojiSelect = (emoji: any) => {
+    onReact?.(messageId, emoji.native)
     setEmojiPickerOpen(false)
   }
 
@@ -137,7 +118,7 @@ export function MessageActionsPopover({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-          className="w-auto p-0 border-0" 
+          className="w-auto p-0 border-0 shadow-lg" 
           side="top" 
           align="start"
           sideOffset={8}
@@ -145,11 +126,16 @@ export function MessageActionsPopover({
           sticky="always"
         >
           <Picker
-            onEmojiClick={handleEmojiSelect}
-            width={350}
-            height={400}
-            searchPlaceholder="Search emoji..."
-            previewConfig={{ showPreview: false }}
+            data={data}
+            theme={resolvedTheme === "dark" ? "dark" : "light"}
+            previewPosition="none"
+            skinTonePosition="search"
+            navPosition="top"
+            perLine={9}
+            emojiSize={22}
+            emojiButtonSize={34}
+            searchPosition="sticky"
+            onEmojiSelect={handleEmojiSelect}
           />
         </PopoverContent>
       </Popover>
@@ -237,31 +223,6 @@ export function MessageActionsPopover({
           </div>
         </PopoverContent>
       </Popover>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit message</DialogTitle>
-            <DialogDescription>Make changes to your message</DialogDescription>
-          </DialogHeader>
-          <Textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="min-h-[100px]"
-            placeholder="Enter your message..."
-            autoFocus
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-            <Button 
-              onClick={handleEditSubmit} 
-              disabled={!editContent.trim() || editContent.trim() === getPlainText(messageContent)}
-            >
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -34,7 +34,7 @@ export function EmojiPopover({ onEmojiSelect, disabled }: EmojiPopoverProps) {
           data={data}
           theme={resolvedTheme === "dark" ? "dark" : "light"}
           previewPosition="none"
-          skinTonePosition="none"
+          skinTonePosition="search"
           navPosition="top"
           perLine={9}
           emojiSize={22}
