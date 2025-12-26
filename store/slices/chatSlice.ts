@@ -515,12 +515,12 @@ const chatSlice = createSlice({
       channelId: number;
       messageId: number;
     }>) => {
-      const { channelId, messageId } = action.payload;
-
+      const { channelId, messageId, } = action.payload;
       const messages = state.messages[channelId];
       if (!messages) return;
-
-      state.messages[channelId] = messages.filter(m => Number(m.id) !== Number(messageId));
+      const message = messages.find(m => Number(m.id) === Number(messageId));
+      if (!message) return;
+      message.is_deleted = true;
     },
 
 

@@ -221,9 +221,6 @@ export function RichTextEditor({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    console.table(teamMembers)
-  
-
   const editor = useEditor({
     extensions: [
       StarterKit.configure({

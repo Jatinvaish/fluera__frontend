@@ -244,39 +244,6 @@ export function Sidebar({
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      <div className="border-border flex h-16 flex-shrink-0 items-center border-t px-3">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-2 py-2 transition-colors">
-              <div className="relative h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
-                {currentUser?.name?.charAt(0).toUpperCase() || "U"}
-                <span
-                  className={cn(
-                    "border-sidebar absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2",
-                    currentUser?.status === "active" && "bg-green-500",
-                    currentUser?.status === "away" && "bg-yellow-500",
-                    (!currentUser?.status || currentUser?.status === "offline") && "bg-gray-400 dark:bg-gray-500"
-                  )}
-                />
-              </div>
-              <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-sm font-medium">{currentUser?.name || "You"}</p>
-                <p className="text-muted-foreground truncate text-xs capitalize">
-                  {currentUser?.status || "Active"}
-                </p>
-              </div>
-              <ChevronDown className="h-4 w-4 flex-shrink-0" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => setUserStatusOpen(true)}>
-              Update your status
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       <CreateChannelDialog
         open={createChannelOpen}
         onOpenChange={setCreateChannelOpen}

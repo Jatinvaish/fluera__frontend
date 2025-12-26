@@ -59,13 +59,15 @@ const MessageReadStatus = ({ message, isOwn }: { message: any; isOwn: boolean })
               <CheckCheck className="h-3.5 w-3.5 text-blue-500" strokeWidth={2.5} />
             </div>
           </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">
-              Read by {readCount} {readCount === 1 ? "person" : "people"}
-            </p>
-          </TooltipContent>
+          {readCount > 0 &&
+            <TooltipContent>
+              <p className="text-xs">
+                Read by {readCount} {readCount === 1 ? "person" : "people"}
+              </p>
+            </TooltipContent>
+          }
         </Tooltip>
-      </TooltipProvider>
+      </TooltipProvider >
     );
   }
 
@@ -372,8 +374,8 @@ export function MessageItem({
   return (
     <div className={cn(
       "group relative -mx-4 px-4 py-1.5 lg:-mx-6 lg:px-6",
-      message.isPinned 
-        ? "bg-primary/10 hover:bg-primary/20" 
+      message.isPinned
+        ? "bg-primary/10 hover:bg-primary/20"
         : "hover:bg-muted"
     )}>
       <div className="flex gap-3">
@@ -395,8 +397,9 @@ export function MessageItem({
             {message.edited && <span className="text-muted-foreground text-xs">(edited)</span>}
             {message.isPinned && <Pin className="text-muted-foreground h-3 w-3" />}
           </div>
+
           {/* Reply Preview */}
-          {message.replyTo && (
+          {!message.is_deleted && message.replyTo && (
             <div
               className="border-primary bg-muted/60 hover:bg-muted mb-2 cursor-pointer rounded border-l-2 p-2 text-xs transition-colors"
               onClick={() => onScrollToMessage?.(message.replyTo!.messageId)}>
@@ -408,42 +411,56 @@ export function MessageItem({
           )}
 
           {/* Message content */}
-          <div className="text-foreground mt-0.5 text-sm break-words">
-            {renderContent(message.content)}
-          </div>
-
-          {/* ✅ File Attachments */}
-          {message.files && message.files.length > 0 && (
-            <div
-              className={cn(
-                "mt-2 gap-2",
-                message.files.length === 1 ? "flex max-w-xs" : "grid max-w-md grid-cols-2"
-              )}>
-              {message.files.map((file, index) => (
-                <FileAttachment 
-                  key={file.id || `${file.name}-${index}`} 
-                  file={file}
-                  onPreview={() => {
-                    setPreviewFileIndex(index);
-                    setPreviewModalOpen(true);
-                  }}
-                />
-              ))}
+          {message.is_deleted ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <svg className="h-4 w-4 text-muted-foreground" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1Z" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M10.5 5.5L5.5 10.5M5.5 5.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <span className="text-muted-foreground text-sm italic">
+                This message was deleted
+              </span>
             </div>
-          )}
+          ) : (
+            <>
+              <div className="text-foreground mt-0.5 text-sm break-words">
+                {renderContent(message.content)}
+              </div>
 
-          {/* File Preview Modal */}
-          {message.files && message.files.length > 0 && (
-            <FilePreviewModal
-              open={previewModalOpen}
-              onOpenChange={setPreviewModalOpen}
-              files={message.files}
-              initialIndex={previewFileIndex}
-            />
+              {/* ✅ File Attachments */}
+              {message.files && message.files.length > 0 && (
+                <div
+                  className={cn(
+                    "mt-2 gap-2",
+                    message.files.length === 1 ? "flex max-w-xs" : "grid max-w-md grid-cols-2"
+                  )}>
+                  {message.files.map((file, index) => (
+                    <FileAttachment
+                      key={file.id || `${file.name}-${index}`}
+                      file={file}
+                      onPreview={() => {
+                        setPreviewFileIndex(index);
+                        setPreviewModalOpen(true);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* File Preview Modal */}
+              {message.files && message.files.length > 0 && (
+                <FilePreviewModal
+                  open={previewModalOpen}
+                  onOpenChange={setPreviewModalOpen}
+                  files={message.files}
+                  initialIndex={previewFileIndex}
+                />
+              )}
+            </>
           )}
 
           {/* Reactions */}
-          {groupedReactions.length > 0 && (
+          {!message.is_deleted && groupedReactions.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {groupedReactions.map((reaction) => (
                 <TooltipProvider key={`${message.id}-${reaction.emoji}-${reaction.count}`}>
@@ -471,7 +488,8 @@ export function MessageItem({
           )}
 
           {/* Thread Reply Count */}
-          {!isInThread &&
+          {!message.is_deleted &&
+            !isInThread &&
             !isDirect &&
             message.threadReplies !== undefined &&
             message.threadReplies > 0 && (
