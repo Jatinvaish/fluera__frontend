@@ -197,6 +197,8 @@ interface RichTextEditorProps {
   teamMembers?: Array<{ id: string; name: string; email: string }>;
   className?: string;
   channelId?: number; // ✅ NEW: Required for sending files as messages
+  initialContent?: string; // ✅ NEW: For editing messages
+  onCancel?: () => void; // ✅ NEW: For canceling edit mode
 }
 
 export function RichTextEditor({
@@ -211,7 +213,9 @@ export function RichTextEditor({
   teamMembers = [],
   className,
   onSendMessageWS,
-  channelId
+  channelId,
+  initialContent,
+  onCancel
 }: RichTextEditorProps) {
   const [isSending, setIsSending] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -325,6 +329,7 @@ export function RichTextEditor({
           "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[60px] max-h-[200px] overflow-y-auto px-3 py-2.5 text-sm leading-relaxed [&>p]:my-0.5 [&>p:first-child]:mt-0 [&>p:last-child]:mb-0 [&_code]:bg-muted/60 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono"
       }
     },
+    content: initialContent,
     onUpdate: ({ editor }) => {
       const text = editor.getText();
 
@@ -341,7 +346,7 @@ export function RichTextEditor({
         }
       }, 3000);
     }
-  }, [teamMembers]);
+  });
 
   useEffect(() => {
     return () => {
@@ -586,7 +591,10 @@ export function RichTextEditor({
     if (!editor) return;
 
     const handler = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Enter" && !event.shiftKey) {
+      if (event.key === "Escape" && onCancel) {
+        event.preventDefault();
+        onCancel();
+      } else if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
         handleSend();
       }
@@ -595,7 +603,7 @@ export function RichTextEditor({
     const dom = editor.view.dom;
     dom.addEventListener("keydown", handler);
     return () => dom.removeEventListener("keydown", handler);
-  }, [editor, handleSend]);
+  }, [editor, handleSend, onCancel]);
 
   // --- Drag & Drop handlers on wrapper div ---
   const onDragOver = useCallback((e: React.DragEvent) => {
