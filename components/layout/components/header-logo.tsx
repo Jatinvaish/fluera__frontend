@@ -41,16 +41,16 @@ export function HeaderLogo() {
       <div className={cn("flex items-center gap-2 lg:w-[var(--sidebar-width)]", showSecondarySidebar && "border-border border-e")}>
         <div className="flex w-full items-center">
           <div className="border-border bg-muted flex h-[var(--header-height-mobile)] w-[var(--sidebar-collapsed-width)] shrink-0 items-center justify-center border-0 lg:h-[var(--header-height)]">
-            <Link href="/dashboard">
+            <Link href="/dashboard" className="flex items-center justify-center w-full h-full">
               <img
                 src={toAbsoluteUrl("/media/app/fluera_logo.png")}
-                className="min-h-[30px] dark:hidden"
-                alt="Thunder AI Logo"
+                className="h-24 w-auto object-contain dark:hidden"
+                alt="Fluera Logo"
               />
               <img
                 src={toAbsoluteUrl("/media/app/fluera_logo.png")}
-                className="hidden min-h-[30px] dark:block"
-                alt="Thunder AI Logo"
+                className="hidden h-24 w-auto object-contain dark:block"
+                alt="Fluera Logo"
               />
             </Link>
           </div>
