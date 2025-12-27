@@ -54,12 +54,12 @@ export function ChatHeader({
 
   return (
     <>
-      <div className="bg-background px-4 py-3 h-14 flex items-center w-full border-b border-border">
+      <div className="bg-background px-4 py-3 h-16 flex items-center w-full border-b border-border">
         <div className="flex items-center justify-between gap-3 w-full">
           {/* Left side */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {isDirect ? (
-              <div className="h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
+              <div className="h-9 w-9 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-sm font-semibold">
                 {title?.charAt(0)?.toUpperCase() || '?'}
               </div>
             ) : isPrivate ? (
@@ -68,7 +68,7 @@ export function ChatHeader({
               <Hash className="h-5 w-5 text-muted-foreground flex-shrink-0" />
             )}
             <div className="min-w-0 flex-1">
-              <h2 className="font-display text-sm font-bold truncate">{title}</h2>
+              <h2 className="font-display text-base font-semibold truncate">{title}</h2>
               {description && <p className="text-xs text-muted-foreground truncate hidden sm:block">{description}</p>}
             </div>
             {memberCount !== undefined && memberCount > 0 && (
@@ -81,23 +81,23 @@ export function ChatHeader({
 
           {/* Right side - Action buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Button size="icon" variant="ghost" onClick={onSearchClick} title="Search" className="h-8 w-8 hover:bg-muted">
-              <Search className="h-4 w-4" />
+            <Button size="icon" variant="ghost" onClick={onSearchClick} title="Search" className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              <Search className="h-[18px] w-[18px]" />
             </Button>
-            <Button size="icon" variant="ghost" onClick={onInviteUsers} title="Invite people" className="h-8 w-8 hover:bg-muted">
-              <Users className="h-4 w-4" />
+            <Button size="icon" variant="ghost" onClick={onInviteUsers} title="Invite people" className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              <Users className="h-[18px] w-[18px]" />
             </Button>
-            <Button size="icon" variant="ghost" onClick={() => setPinOpen(true)} title={isPinned ? `Unpin ${isDirect ? "chat" : "channel"}` : `Pin ${isDirect ? "chat" : "channel"}`} className="h-8 w-8 hover:bg-muted">
-              <Pin className={`h-4 w-4 ${isPinned ? "text-primary fill-primary" : ""}`} />
+            <Button size="icon" variant="ghost" onClick={() => setPinOpen(true)} title={isPinned ? `Unpin ${isDirect ? "chat" : "channel"}` : `Pin ${isDirect ? "chat" : "channel"}`} className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              <Pin className={`h-[18px] w-[18px] ${isPinned ? "text-primary fill-primary" : ""}`} />
             </Button>
-            <Button size="icon" variant="ghost" onClick={onMuteChannel} title={isMuted ? "Unmute" : "Mute"} className="h-8 w-8 hover:bg-muted">
-              {isMuted ? <BellOff className="h-4 w-4 text-muted-foreground" /> : <Bell className="h-4 w-4" />}
+            <Button size="icon" variant="ghost" onClick={onMuteChannel} title={isMuted ? "Unmute" : "Mute"} className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              {isMuted ? <BellOff className="h-[18px] w-[18px] text-muted-foreground" /> : <Bell className="h-[18px] w-[18px]" />}
             </Button>
-            <Button size="icon" variant="ghost" onClick={onMembersClick} title={`${isDirect ? "Chat" : "Channel"} info`} className="h-8 w-8 hover:bg-muted">
-              <Info className="h-4 w-4" />
+            <Button size="icon" variant="ghost" onClick={onMembersClick} title={`${isDirect ? "Chat" : "Channel"} info`} className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              <Info className="h-[18px] w-[18px]" />
             </Button>
-            <Button size="icon" variant="ghost" onClick={() => setSettingsOpen(true)} title="Settings" className="h-8 w-8 hover:bg-muted">
-              <Settings className="h-4 w-4" />
+            <Button size="icon" variant="ghost" onClick={() => setSettingsOpen(true)} title="Settings" className="h-9 w-9 hover:bg-muted rounded-lg transition-colors">
+              <Settings className="h-[18px] w-[18px]" />
             </Button>
           </div>
         </div>

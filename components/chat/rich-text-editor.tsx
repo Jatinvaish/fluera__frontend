@@ -699,7 +699,7 @@ export function RichTextEditor({
     <div className={cn("bg-background border-border border-t px-2 py-2 sm:px-4", className)}>
       <div className="w-full space-y-2">
         {replyingTo && (
-          <div className="bg-muted border-primary flex items-start gap-2 rounded border-l-2 p-2 text-xs sm:text-sm">
+          <div className="bg-muted border-primary flex items-start gap-2 rounded-lg border-l-2 p-3 text-xs sm:text-sm">
             <div className="min-w-0 flex-1">
               <span className="text-primary font-semibold">
                 Replying to {replyingTo.authorName}
@@ -721,7 +721,8 @@ export function RichTextEditor({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "border-border hover:border-primary/50 bg-background focus-within:border-primary focus-within:ring-primary/20 flex flex-col overflow-hidden rounded-lg border transition-colors focus-within:ring-1 relative"
+            "border-border hover:border-primary/50 bg-background focus-within:border-primary focus-within:ring-primary/20 flex flex-col overflow-hidden rounded-xl border transition-all focus-within:ring-1 relative",
+            "min-h-[52px]"
           )}>
           {/* Drop overlay */}
           {isDragging && (
