@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export function Header() {
-  const { isMobile } = useLayout();
+  const { isMobile, showSecondarySidebar } = useLayout();
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -35,12 +35,9 @@ export function Header() {
         <div className="flex items-stretch gap-x-6">
           <HeaderLogo />
           {!isMobile && (
-            <>
-              <Separator orientation="vertical" className="data-[orientation=vertical]:h-4 self-center" />
-              <div className="flex items-center">
-                <HeaderBreadcrumbs />
-              </div>
-            </>
+            <div className="flex items-center">
+              <HeaderBreadcrumbs />
+            </div>
           )}
         </div>
         <div className="flex items-center pe-5 lg:pe-0">

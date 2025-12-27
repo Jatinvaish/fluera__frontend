@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +79,7 @@ export function HeaderToolbar() {
   const displayName = user?.firstName || "User";
   const displayEmail = user?.email || "user@example.com";
   const initials = getInitials(user?.firstName || user?.firstName, user?.email);
+  const userRole = user?.userType || user?.user_type || "User";
 
   if (!mounted) return <div className="h-10 w-32" />;
 
@@ -108,6 +110,9 @@ export function HeaderToolbar() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{displayName}</span>
                 <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
+                <Badge variant="success" appearance="outline" size="sm" className="mt-1">
+                  {userRole}
+                </Badge>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -115,13 +120,10 @@ export function HeaderToolbar() {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <Sparkles />
-              Upgrade to Pro
+            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
+              <User />
+              Profile Settings
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuGroup>
             <DropdownMenuItem>
               <BadgeCheck />
               Account

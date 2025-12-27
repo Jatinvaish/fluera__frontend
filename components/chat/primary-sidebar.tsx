@@ -34,19 +34,19 @@ export function PrimarySidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="bg-sidebar hidden md:flex h-full w-16 flex-col items-center py-2 gap-1 border border-border">
+      <div className="bg-sidebar hidden md:flex h-full w-16 flex-col items-center py-2 border border-border">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "relative flex h-12 w-12 flex-col items-center justify-center rounded-lg transition-colors",
+              "relative flex h-11 w-11 flex-col items-center justify-center rounded-lg transition-colors",
               activeTab === tab.id
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
             )}
             title={tab.label}>
-            <tab.icon className="h-5 w-5" />
+            <tab.icon className="h-3 w-3" />
             <span className="mt-0.5 text-[10px] font-medium">{tab.label}</span>
             {tab.badge > 0 && (
               <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-background text-[10px] font-bold text-background-foreground">
@@ -91,7 +91,7 @@ export function PrimarySidebar({
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   )}>
-                  <tab.icon className="h-6 w-6" />
+                  <tab.icon className="h-4 w-4" />
                   <div className="flex-1 text-left">
                     <p className="font-medium text-base">{tab.label}</p>
                   </div>
@@ -107,7 +107,7 @@ export function PrimarySidebar({
 
               <button
                 className="flex w-full items-center gap-4 rounded-xl px-4 py-4 text-sidebar-foreground transition-colors hover:bg-sidebar-accent/50">
-                <Settings className="h-6 w-6" />
+                <Settings className="h-4 w-4" />
                 <div className="flex-1 text-left">
                   <p className="font-medium text-base">Settings</p>
                 </div>

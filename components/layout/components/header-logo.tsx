@@ -38,7 +38,7 @@ export function HeaderLogo() {
 
   return (
     <>
-      <div className="border-border flex items-center gap-2 border-e lg:w-[var(--sidebar-width)]">
+      <div className={cn("flex items-center gap-2 lg:w-[var(--sidebar-width)]", showSecondarySidebar && "border-border border-e")}>
         <div className="flex w-full items-center">
           <div className="border-border bg-muted flex h-[var(--header-height-mobile)] w-[var(--sidebar-collapsed-width)] shrink-0 items-center justify-center border-0 lg:h-[var(--header-height)]">
             <Link href="/dashboard">
@@ -72,25 +72,17 @@ export function HeaderLogo() {
             </Sheet>
           )}
 
-          <div className="hidden w-full grow items-center justify-between gap-2.5 px-5 lg:flex">
-            <IfHasAccess menuKey="access-control.users">
-              <Button
-                onClick={() => setAddUserDialogOpen(true)}
-                className="xs:w-auto flex w-full items-center gap-2">
-                <Plus className="h-4 w-4 flex-shrink-0" />
-                <span>Add User</span>
-              </Button>
-            </IfHasAccess>
-            {showSecondarySidebar && (
+          {showSecondarySidebar && (
+            <div className="hidden w-full grow items-center justify-between gap-2.5 px-5 lg:flex">
               <Button
                 mode="icon"
                 variant="ghost"
                 onClick={sidebarToggle}
-                className="text-muted-foreground hover:text-foreground">
+                className="text-muted-foreground hover:text-foreground ml-auto">
                 <PanelRight className="-rotate-180 opacity-100 in-data-[sidebar-open=false]:rotate-0" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

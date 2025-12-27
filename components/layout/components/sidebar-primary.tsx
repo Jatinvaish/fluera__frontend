@@ -10,9 +10,9 @@ import {
   ExternalLink,
   Zap,
   Target,
-  ChartPieIcon,
+  LayoutDashboard,
   SquareKanbanIcon,
-  MessageSquareIcon,
+  MessageCircle,
   BrainIcon,
   UsersIcon,
   ClipboardMinusIcon,
@@ -53,12 +53,12 @@ import { usePermissionContext } from "@/contexts/permission-context";
 const menuItems = [
   {
     id: "dashboards",
-    icon: ChartPieIcon,
-    tooltip: "Dashboards",
+    icon: LayoutDashboard,
+    tooltip: "Dashboard",
     path: "/dashboard",
     rootPath: "/dashboard",
-    showSecondarySidebar: false, // Flag to control secondary sidebar visibility
-    menuKey: "dashboards" // Permission key for access control
+    showSecondarySidebar: false,
+    menuKey: "dashboards"
   },
   {
     id: "access-control",
@@ -66,17 +66,17 @@ const menuItems = [
     tooltip: "Access Control",
     path: "/dashboard/access-control",
     rootPath: "/dashboard/access-control",
-    showSecondarySidebar: true, // Flag to control secondary sidebar visibility
-    menuKey: "access-control" // Permission key for access control
+    showSecondarySidebar: true,
+    menuKey: "access-control"
   },
   {
     id: "chat",
-    icon: MessageSquareIcon,
-    tooltip: "Chat",
+    icon: MessageCircle,
+    tooltip: "Messages",
     path: "/dashboard/chat",
     rootPath: "/dashboard/chat",
-    showSecondarySidebar: false, // Flag to control secondary sidebar visibility
-    menuKey: "chat" // Permission key for access control
+    showSecondarySidebar: false,
+    menuKey: "chat"
   }
 ];
 
@@ -196,10 +196,10 @@ export function SidebarPrimary() {
                       mode="icon"
                       disabled
                       className={cn(
-                        "relative size-9 shrink-0 cursor-not-allowed rounded-md opacity-50",
+                        "relative size-10 shrink-0 cursor-not-allowed rounded-md opacity-50",
                         "hover:text-muted-foreground"
                       )}>
-                      <item.icon className="size-4.5!" />
+                      <item.icon className="size-5" />
                       <LockIcon className="text-destructive absolute right-0 bottom-0 size-3" />
                     </Button>
                   </TooltipTrigger>
@@ -226,11 +226,11 @@ export function SidebarPrimary() {
                     onClick={() => handleMenuClick(item)}
                     {...(item.id === activeSecondaryMenu ? { "data-state": "open" } : {})}
                     className={cn(
-                      "size-9 shrink-0 rounded-md",
+                      "size-10 shrink-0 rounded-md",
                       "data-[state=open]:bg-primary data-[state=open]:text-primary-foreground",
                       "hover:text-foreground"
                     )}>
-                    <item.icon className="size-4.5!" />
+                    <item.icon className="size-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">{item.tooltip}</TooltipContent>
@@ -242,7 +242,7 @@ export function SidebarPrimary() {
 
       {/* Footer */}
       <div className="flex shrink-0 flex-col items-center gap-2.5">
-        <Button variant="ghost" mode="icon" className="text-muted-foreground hover:text-foreground">
+        {/* <Button variant="ghost" mode="icon" className="text-muted-foreground hover:text-foreground">
           <Mails className="opacity-100" />
         </Button>
 
@@ -252,67 +252,7 @@ export function SidebarPrimary() {
 
         <Button variant="ghost" mode="icon" className="text-muted-foreground hover:text-foreground">
           <Settings className="opacity-100" />
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger className="mb-2.5 cursor-pointer">
-            <Avatar className="size-7">
-              <AvatarImage src={toAbsoluteUrl("/media/avatars/300-2.png")} alt="User" />
-              <AvatarFallback>{initials}</AvatarFallback>
-              <AvatarIndicator className="-end-2 -top-2">
-                <AvatarStatus variant="online" className="size-2.5" />
-              </AvatarIndicator>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="mb-4 w-64" side="right" align="start" sideOffset={11}>
-            <div className="flex items-center gap-3 px-3 py-2">
-              <Avatar>
-                <AvatarImage src={toAbsoluteUrl("/media/avatars/300-2.png")} alt="User" />
-                <AvatarFallback>{initials}</AvatarFallback>
-                <AvatarIndicator className="-end-1.5 -top-1.5">
-                  <AvatarStatus variant="online" className="size-2.5" />
-                </AvatarIndicator>
-              </Avatar>
-              <div className="flex flex-col items-start">
-                <span className="text-foreground text-sm font-semibold">{displayName}</span>
-                <span className="text-muted-foreground max-w-[160px] truncate text-xs">
-                  {displayEmail}
-                </span>
-                <Badge variant="success" appearance="outline" size="sm" className="mt-1">
-                  {userRole}
-                </Badge>
-              </div>
-            </div>
-
-            <DropdownMenuItem className="border-border hover:bg-muted cursor-pointer rounded-md border py-1">
-              <Clock />
-              <span>Set availability</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/dashboard/access-control/users")}>
-              <Users />
-              <span>Team Management</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
-              <User />
-              <span>Profile Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/dashboard/preferences")}>
-              <Settings />
-              <span>Preferences</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push("/dashboard/security")}>
-              <Shield />
-              <span>Security</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
-              <LogOut />
-              <span>{isLoggingOut ? "Signing out..." : "Sign out"}</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </Button> */}
       </div>
     </div>
   );
