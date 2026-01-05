@@ -420,13 +420,7 @@ export function RichTextEditor({
       console.warn("⚠️ No channel or no attachments");
       return true;
     }
-
-    console.log("📎 Starting file upload...", {
-      channelId,
-      fileCount: attachments.length,
-      files: attachments.map(a => ({ name: a.file.name, size: a.file.size }))
-    });
-
+ 
     setIsUploading(true);
     setAttachments((prev) => prev.map((a) => ({ ...a, uploading: true, progress: 0 })));
 
@@ -434,7 +428,6 @@ export function RichTextEditor({
       const files = attachments.map((a) => a.file);
       const caption = editor?.getText().trim() || "";
 
-      console.log("📤 Calling ChatService.sendFilesAsOneMessage...");
 
       // ✅ API call - creates message in DB
       const message = await ChatService.sendFilesAsOneMessage(
@@ -445,12 +438,10 @@ export function RichTextEditor({
           replyToMessageId: replyingTo ? parseInt(replyingTo.id) : undefined
         },
         (progress: FileUploadProgress) => {
-          console.log(`📊 Upload progress: ${progress.percentage}%`);
           setAttachments((prev) => prev.map((a) => ({ ...a, progress: progress.percentage })));
         }
       );
 
-      console.log("✅ File upload successful:", message);
 
       setAttachments((prev) =>
         prev.map((a) => ({ ...a, uploading: false, sent: true, progress: 100 }))
@@ -459,7 +450,6 @@ export function RichTextEditor({
       // ✅ CRITICAL: Call onFileSent to add message to Redux
       // Backend broadcasts via WebSocket, but we need immediate local update
       if (onFileSent) {
-        console.log("🔄 Calling onFileSent callback...");
         onFileSent(message);
       } else {
         console.warn("⚠️ onFileSent callback not provided!");
@@ -467,7 +457,6 @@ export function RichTextEditor({
 
       return true;
     } catch (error: any) {
-      console.error("❌ Failed to send files:", error);
       setAttachments((prev) =>
         prev.map((a) => ({
           ...a,
@@ -494,11 +483,9 @@ export function RichTextEditor({
     const hasFiles = attachments.length > 0;
     const hasText = plainText.length > 0;
 
-    console.log("📤 handleSend called:", { hasFiles, hasText, fileCount: attachments.length });
 
     // Nothing to send
     if (!hasText && !hasFiles) {
-      console.log("⚠️ Nothing to send");
       return;
     }
 
@@ -507,27 +494,22 @@ export function RichTextEditor({
     try {
       // ✅ If we have files, send them ALL as ONE message
       if (hasFiles && channelId) {
-        console.log("📎 Sending files as message...");
         const success = await sendFilesAsOneMessage();
 
         if (success) {
-          console.log("✅ Files sent, clearing editor...");
           editor.commands.clearContent();
           attachments.forEach((a) => URL.revokeObjectURL(a.preview));
           setAttachments([]);
           onClearReply?.();
         } else {
-          console.error("❌ File send failed");
         }
       }
       // ✅ Text only message (no files)
       else if (hasText && !hasFiles) {
-        console.log("💬 Sending text message...");
         const mentions = extractMentions();
         const result = await onSend?.(html, plainText, mentions, undefined);
 
         if (result !== false) {
-          console.log("✅ Text message sent");
           editor.commands.clearContent();
           onClearReply?.();
         }
@@ -699,7 +681,7 @@ export function RichTextEditor({
     <div className={cn("bg-background border-border border-t px-2 py-2 sm:px-4", className)}>
       <div className="w-full space-y-2">
         {replyingTo && (
-          <div className="bg-muted border-primary flex items-start gap-2 rounded border-l-2 p-2 text-xs sm:text-sm">
+          <div className="bg-muted border-primary flex items-start gap-2 rounded-lg border-l-2 p-3 text-xs sm:text-sm">
             <div className="min-w-0 flex-1">
               <span className="text-primary font-semibold">
                 Replying to {replyingTo.authorName}
@@ -721,7 +703,8 @@ export function RichTextEditor({
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           className={cn(
-            "border-border hover:border-primary/50 bg-background focus-within:border-primary focus-within:ring-primary/20 flex flex-col overflow-hidden rounded-lg border transition-colors focus-within:ring-1 relative"
+            "border-border hover:border-primary/50 bg-background focus-within:border-primary focus-within:ring-primary/20 flex flex-col overflow-hidden rounded-xl border transition-all focus-within:ring-1 relative",
+            "min-h-[52px]"
           )}>
           {/* Drop overlay */}
           {isDragging && (

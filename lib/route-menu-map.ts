@@ -6,19 +6,29 @@
  */
 export const ROUTE_MENU_MAP: Record<string, string> = {
   // Dashboard
-  '/dashboard': 'dashboard', 
-  
+  '/dashboard': 'dashboard.access',
+
   // Access Control
-  '/dashboard/access-control': 'access-control',
-  '/dashboard/access-control/roles': 'access-control.roles',
-  '/dashboard/access-control/permissions': 'access-control.permissions',
-  '/dashboard/access-control/menu-permissions': 'access-control.menu-permissions',
-  '/dashboard/access-control/user-roles': 'access-control.user-roles',
-  '/dashboard/access-control/roles/[id]/bulk-assign': 'access-control.user-roles',
-  '/dashboard/access-control/resource-attributes': 'access-control.resource-attributes',
-  
+  '/dashboard/access-control': 'dashboard.access-control.access',
+  '/dashboard/access-control/users': 'dashboard.access-control.users.access',
+  '/dashboard/access-control/roles': 'dashboard.access-control.roles.access',
+  '/dashboard/access-control/permissions': 'dashboard.access-control.permissions.access',
+  '/dashboard/access-control/menu-permissions': 'dashboard.access-control.menu-permissions.access',
+  '/dashboard/access-control/roles/[id]': 'dashboard.access-control.roles.bulk-assign.access',
+  '/dashboard/subscription-management': 'dashboard.subscriptions.access',
+  '/dashboard/subscription-management/plans': 'dashboard.subscriptions.plans.access',
+  '/dashboard/subscription-management/offers': 'dashboard.subscriptions.offers.access',
+  '/dashboard/subscription-management/features': 'dashboard.subscriptions.features.access',
+  '/dashboard/subscription-management/features-permission': 'dashboard.subscriptions.features-permission.access',
+
   // Apps
-  '/dashboard/chat': 'chat.access',  
+  '/dashboard/chat': 'dashboard.chat.access',
+
+  //Plans
+  '/dashboard/billing': 'dashboard.billing.access',
+  '/dashboard/billing/plans': 'dashboard.billing.plans.access',
+  '/dashboard/billing/payment-methods': 'dashboard.billing.payment-methods.access',
+
 };
 
 /**
@@ -36,6 +46,7 @@ export const PUBLIC_ROUTES = [
   '/verify',
   '/verify-email',
   '/auth',
+  '/accept-invitation',
   '/errors/403',
   '/errors/404',
   '/errors/500',
@@ -50,14 +61,14 @@ export const PUBLIC_ROUTES = [
 export function isPublicRoute(pathname: string): boolean {
   // Remove trailing slash for consistent matching
   const cleanPath = pathname.replace(/\/$/, '');
-  
+
   return PUBLIC_ROUTES.some(route => {
     // Exact match
     if (cleanPath === route) return true;
-    
+
     // Prefix match (for routes like /api/*, /errors/*)
     if (cleanPath.startsWith(route + '/')) return true;
-    
+
     return false;
   });
 }
@@ -69,7 +80,7 @@ export function isPublicRoute(pathname: string): boolean {
 export function getMenuKeyFromRoute(pathname: string): string | null {
   // Remove trailing slash
   const cleanPath = pathname.replace(/\/$/, '');
-  
+
   // Check for exact match first
   if (ROUTE_MENU_MAP[cleanPath]) {
     console.log('🔍 Exact match:', cleanPath, '->', ROUTE_MENU_MAP[cleanPath]);
@@ -117,12 +128,12 @@ export function getParentMenuKey(menuKey: string): string | null {
 export function getAllParentMenuKeys(menuKey: string): string[] {
   const parts = menuKey.split('.');
   const parents: string[] = [];
-  
+
   // Start from length-1 to get immediate parent first
   for (let i = parts.length - 1; i > 0; i--) {
     parents.push(parts.slice(0, i).join('.'));
   }
-  
+
   return parents;
 }
 

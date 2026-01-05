@@ -7,6 +7,8 @@ import rolesReducer from './slices/roles.slice';
 import permissionsReducer from './slices/permissions.slice';
 import tenantReducer from './slices/tenantSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
+import adminSubscriptionReducer from './slices/adminSubscriptionSlice';
+import profileReducer from './slices/profileSlice';
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +19,8 @@ export const store = configureStore({
     permissions: permissionsReducer,
     tenant: tenantReducer,
     subscription: subscriptionReducer,
+    adminSubscription: adminSubscriptionReducer,
+    profile: profileReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

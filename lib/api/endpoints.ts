@@ -19,7 +19,8 @@ export const API_ENDPOINTS = {
     INVITE_ACCEPT: "/auth/invitation/accept",
     INVITE_SEND: "/auth/invitation/send",
     INVITE_RESEND: "/auth/invitation/resend",
-    INVITE_CANCEL: "/auth/invitation/cancel"
+    INVITE_CANCEL: "/auth/invitation/cancel",
+    SWITCH_TENANT: "/auth/switch-tenant"
   },
 
   // ==================== CHAT MESSAGES ====================
@@ -36,10 +37,8 @@ export const API_ENDPOINTS = {
       DETAILS: (messageId: number) => `/chat/messages/${messageId}/details`,
       ATTACHMENTS: (messageId: number) => `/chat/messages/${messageId}/attachments`,
       REACTIONS_LIST: (messageId: number) => `/chat/messages/${messageId}/reactions`,
-      // ✅ File Upload Endpoints
       UPLOAD: "/chat/messages/upload",
       UPLOAD_MULTIPLE: "/chat/messages/upload-multiple",
-      // ✅ Add these new endpoints
       SEND_FILE: "/chat/messages/send-file", // ✅ NEW
       SEND_FILES: "/chat/messages/send-files",
       SEND_ATTACHMENT: "/chat/messages/send-attachment", // ✅ NEW
@@ -147,7 +146,8 @@ export const API_ENDPOINTS = {
       GET: "/rbac/roles/get",
       CREATE: "/rbac/roles/create",
       UPDATE: "/rbac/roles/update",
-      DELETE: "/rbac/roles/delete"
+      DELETE: "/rbac/roles/delete",
+      CLONE_ROLE: "/rbac/roles/clone",
     },
     PERMISSIONS: {
       LIST: "/rbac/permissions/list",
@@ -190,31 +190,7 @@ export const API_ENDPOINTS = {
       UPDATE: "/rbac/role-limits/update",
       GET: "/rbac/role-limits/get"
     },
-    ENHANCED: {
-      BULK_ASSIGN_ROLES: "/rbac/users/roles/bulk-assign",
-      BULK_REMOVE_ROLES: "/rbac/users/roles/bulk-remove",
-      BULK_ASSIGN_USERS: "/rbac/roles/users/bulk-assign",
-      CLONE_ROLE: "/rbac/roles/clone",
-      COMPARE_ROLES: "/rbac/roles/compare",
-      SEARCH_PERMISSIONS: "/rbac/permissions/search",
-      AVAILABLE_PERMISSIONS: "/rbac/permissions/available",
-      MENU_HIERARCHY: "/rbac/menu-permissions/hierarchy",
-      BLOCKED_MENUS: "/rbac/menu-permissions/blocked",
-      TENANT_ROLES: "/rbac/roles/tenant",
-      TRANSFER_ROLE: "/rbac/roles/transfer",
-      ROLE_ANALYTICS: "/rbac/roles/analytics",
-      VALIDATE_ASSIGNMENT: "/rbac/roles/validate-assignment",
-      VALIDATE_NAME: "/rbac/roles/validate-name",
-      ROLE_ASSIGNMENT_HISTORY: "/rbac/audit/role-assignments",
-      PERMISSION_CHANGE_HISTORY: "/rbac/audit/permission-changes",
-      USER_ACCESS_REPORT: "/rbac/reports/user-access",
-      CREATE_TEMPLATE: "/rbac/role-templates/create",
-      LIST_TEMPLATES: "/rbac/role-templates/list",
-      APPLY_TEMPLATE: "/rbac/role-templates/apply",
-      ROLES_BY_HIERARCHY: "/rbac/roles/by-hierarchy",
-      UNASSIGNED_USERS: "/rbac/users/unassigned",
-      ROLE_USAGE_STATS: "/rbac/roles/usage-stats"
-    }
+
   },
 
   // ==================== SYSTEM CONFIG ====================
@@ -242,12 +218,10 @@ export const API_ENDPOINTS = {
       GET: (id: number) => `/subscriptions/plans/${id}`,
       CREATE: "/subscriptions/plans",
       UPDATE: (id: number) => `/subscriptions/plans/${id}`,
-      DELETE: (id: number) => `/subscriptions/plans/${id}`
+      DELETE: (id: number) => `/subscriptions/plans/${id}`,
+      GET_ALL_ACTIVE_FOR_SELECT: "/subscriptions/plans/get-all-active-for-select"
     },
-    CUSTOM_PLANS: {
-      CREATE: "/subscriptions/custom-plans",
-      GET: (tenantId: number) => `/subscriptions/custom-plans/tenant/${tenantId}`
-    },
+
     MY_SUBSCRIPTION: "/subscriptions/my-subscription",
     TENANT_SUBSCRIPTION: (tenantId: number) => `/subscriptions/tenant/${tenantId}`,
     CHANGE: "/subscriptions/change",
@@ -256,6 +230,70 @@ export const API_ENDPOINTS = {
     HISTORY: "/subscriptions/history",
     CHECK_LIMIT: "/subscriptions/check-limit",
     CHECK_FEATURE: "/subscriptions/check-feature",
-    STATUS: "/subscriptions/status"
+    STATUS: "/subscriptions/status",
+    PAYMENT_METHODS: {
+      LIST: "/subscriptions/payment-methods",
+      ADD: "/subscriptions/payment-methods",
+      DELETE: (id: number) => `/subscriptions/payment-methods/${id}`
+    },
+    OFFERS: {
+      LIST: "/subscriptions/offers",
+      GET: (id: number) => `/subscriptions/offers/${id}`,
+      CREATE: "/subscriptions/offers",
+      UPDATE: (id: number) => `/subscriptions/offers/${id}`,
+      DELETE: (id: number) => `/subscriptions/offers/${id}`,
+      GET_BY_CODE: (code: string) => `/subscriptions/offers/${code}`,
+      USAGE_HISTORY: (id: number) => `/subscriptions/offers/${id}/usage`,
+      VALIDATE: "/subscriptions/offers/validate",
+      APPLY: "/subscriptions/offers/apply"
+    },
+    FEATURES: {
+      CREATE: "/subscriptions/features/create",
+      UPDATE: "/subscriptions/features/update",
+      LIST: "/subscriptions/features/list",
+      GET_BY_ID: "/subscriptions/features/get-by-id",
+      DELETE: "/subscriptions/features/delete",
+      GET_ALL_ACTIVE_FOR_SELECT: "/subscriptions/features/get-all-active-for-select"
+
+    },
+    FEATURE_PERMISSIONS: {
+      CREATE: "/subscriptions/feature-permissions/create",
+      UPDATE: "/subscriptions/feature-permissions/update",
+      LIST: "/subscriptions/feature-permissions/list",
+      GET_BY_ID: "/subscriptions/feature-permissions/get-by-id",
+      DELETE: "/subscriptions/feature-permissions/delete"
+    }
+  },
+
+  // ==================== PROFILES ====================
+  PROFILES: {
+    CREATOR: {
+      GET: "/profiles/creator/get",
+      UPDATE: "/profiles/creator/update"
+    },
+    BRAND: {
+      GET: "/profiles/brand/get",
+      UPDATE: "/profiles/brand/update"
+    },
+    AGENCY: {
+      GET: "/profiles/agency/get",
+      UPDATE: "/profiles/agency/update"
+    }
+  },
+  COLLABORATION: {
+    // Agency → Creator Invitations
+    INVITE_CREATORS: "/collaboration/agency/send-creator-invitations",
+    AGENCY_CREATORS: "/collaboration/agency/creators-list",
+
+    // Creator → Accept/Reject Invitations
+    CREATOR_ACCEPT: "/collaboration/agency/creator-accept-invitation",
+    CREATOR_REJECT: "/collaboration/agency/creator-reject-invitation",
+
+    // Brand → Collaboration Requests
+    BRAND_SEND_COLLABORATION: "/collaboration/brand/send-collaboration-request",
+
+    // ✅ NEW: Notifications
+    NOTIFICATIONS_LIST: "/collaboration/notifications/list",
+    NOTIFICATION_MARK_READ: "/collaboration/notifications/:id/mark-read",
   }
 } as const;

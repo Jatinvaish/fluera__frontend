@@ -119,13 +119,17 @@ const RolesListPage = () => {
   }, [roles, currentUser]);
 
   useEffect(() => {
+    const sortBy = sorting[0]?.id || 'created_at';
+    const sortOrder = sorting[0]?.desc ? 'DESC' : 'ASC';
     dispatch(fetchRoles({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
       scope: scopeFilter,
       search: searchQuery,
+      sortBy,
+      sortOrder,
     }));
-  }, [dispatch, pagination.pageIndex, pagination.pageSize, scopeFilter, searchQuery]);
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, scopeFilter, searchQuery, sorting]);
 
   const handleSearch = () => {
     setSearchQuery(searchInput);
@@ -357,15 +361,17 @@ const RolesListPage = () => {
                   </DropdownMenuItem>
 
                   {canEdit && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/dashboard/access-control/roles/${role.id}/edit`);
-                      }}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Role
-                    </DropdownMenuItem>
+                    <IfHasAccess menuKey="dashboard.access-control.roles.bulk-assign.access">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/dashboard/access-control/roles/${role.id}/edit`);
+                        }}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Role
+                      </DropdownMenuItem>
+                    </IfHasAccess>
                   )}
 
                   <DropdownMenuItem
@@ -428,8 +434,6 @@ const RolesListPage = () => {
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
@@ -439,8 +443,7 @@ const RolesListPage = () => {
     <div className="flex flex-col gap-4">
       <ProtectedBreadcrumb
         items={[
-          { label: 'Access Control', menuKey: 'access-control', href: '/dashboard/access-control' },
-          { label: 'Roles', menuKey: 'access-control.roles', href: '/dashboard/access-control/roles', isCurrent: true },
+          { label: 'Roles', menuKey: 'dashboard.access-control.roles', href: '/dashboard/access-control/roles', isCurrent: true },
         ]}
       />
 
@@ -450,7 +453,7 @@ const RolesListPage = () => {
         isLoading={isLoading}
         onRowClick={handleRowClick}
       >
-        <Card>
+        <Card className="py-4 gap-3">
           <CardHeader className="px-4 sm:px-4">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:gap-3">
@@ -521,29 +524,15 @@ const RolesListPage = () => {
                       <span>Refresh</span>
                     </Button>
 
-                    {/* // TODO */}
-                    {/* <IfHasAccess menuKey="access-control.roles.bulk-assign">
-                      <Button
-                        variant="outline"
-                        disabled={isLoading}
-                        onClick={() => router.push('/dashboard/access-control/roles/bulk-assign')}
-                        className="xs:w-auto flex w-full items-center gap-2 bg-transparent"
-                      >
-                        <Users className="h-4 w-4 flex-shrink-0" />
-                        <span>Bulk Assign</span>
-                      </Button>
-                    </IfHasAccess> */}
-
-                    <IfHasAccess menuKey="access-control.roles.create">
-                      <Button
-                        disabled={isLoading}
-                        onClick={() => setCreateDialogOpen(true)}
-                        className="xs:w-auto flex w-full items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4 flex-shrink-0" />
-                        <span>Create Role</span>
-                      </Button>
-                    </IfHasAccess>
+                    {/* TODO */}
+                    <Button
+                      disabled={isLoading}
+                      onClick={() => setCreateDialogOpen(true)}
+                      className="xs:w-auto flex w-full items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4 flex-shrink-0" />
+                      <span>Create Role</span>
+                    </Button>
                   </div>
                 </div>
               </div>

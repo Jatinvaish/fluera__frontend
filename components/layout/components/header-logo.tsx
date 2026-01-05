@@ -14,6 +14,7 @@ import { selectCurrentTenant, fetchTenantMembers } from "@/store/slices/tenantSl
 import { selectUser } from "@/store/slices/authSlice";
 import { AddUserDialog } from "@/app/dashboard/access-control/users/add-user-dialog";
 import { cn } from "@/lib/utils";
+import { TenantSwitcher } from "./tenant-switcher";
 
 export function HeaderLogo() {
   const pathname = usePathname();
@@ -38,21 +39,25 @@ export function HeaderLogo() {
 
   return (
     <>
-      <div className="border-border flex items-center gap-2 border-e lg:w-[var(--sidebar-width)]">
+      <div className={cn("flex items-center gap-2 lg:w-[var(--sidebar-width)]", showSecondarySidebar && "border-border border-e")}>
         <div className="flex w-full items-center">
-          <div className="border-border bg-muted flex h-[var(--header-height-mobile)] w-[var(--sidebar-collapsed-width)] shrink-0 items-center justify-center border-0 lg:h-[var(--header-height)]">
-            <Link href="/dashboard">
+          <div className="border-border px-1 bg-muted flex h-[var(--header-height-mobile)] w-[var(--sidebar-collapsed-width)] shrink-0 items-center justify-center border-0 lg:h-[var(--header-height)]">
+            <Link href="/dashboard" className="flex items-center justify-center w-full h-full">
               <img
-                src={toAbsoluteUrl("/media/app/fluera_logo.png")}
-                className="min-h-[30px] dark:hidden"
-                alt="Thunder AI Logo"
+                src={toAbsoluteUrl("/fluera-logo.svg")}
+                className="h-20 w-auto object-contain dark:hidden"
+                alt="Fluera Logo"
               />
               <img
-                src={toAbsoluteUrl("/media/app/fluera_logo.png")}
-                className="hidden min-h-[30px] dark:block"
-                alt="Thunder AI Logo"
+                src={toAbsoluteUrl("/fluera-logo.svg")}
+                className="hidden h-20 w-auto object-contain dark:block"
+                alt="Fluera Logo"
               />
             </Link>
+          </div>
+
+          <div className="ml-3 hidden lg:block">
+            <TenantSwitcher />
           </div>
 
           {isMobile && (
@@ -72,25 +77,17 @@ export function HeaderLogo() {
             </Sheet>
           )}
 
-          <div className="hidden w-full grow items-center justify-between gap-2.5 px-5 lg:flex">
-            <IfHasAccess menuKey="access-control.users">
-              <Button
-                onClick={() => setAddUserDialogOpen(true)}
-                className="xs:w-auto flex w-full items-center gap-2">
-                <Plus className="h-4 w-4 flex-shrink-0" />
-                <span>Add User</span>
-              </Button>
-            </IfHasAccess>
-            {showSecondarySidebar && (
+          {showSecondarySidebar && (
+            <div className="hidden w-full grow items-center justify-between gap-2.5 px-5 lg:flex">
               <Button
                 mode="icon"
                 variant="ghost"
                 onClick={sidebarToggle}
-                className="text-muted-foreground hover:text-foreground">
+                className="text-muted-foreground hover:text-foreground ml-auto">
                 <PanelRight className="-rotate-180 opacity-100 in-data-[sidebar-open=false]:rotate-0" />
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

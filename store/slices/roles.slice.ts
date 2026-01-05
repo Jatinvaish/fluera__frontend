@@ -7,11 +7,7 @@ import {
   UpdateRolePayload,
   ListParams,
   PermissionTree,
-  BulkAssignRolesPayload,
-  BulkRemoveRolesPayload,
-  BulkAssignUsersToRolePayload,
   CloneRolePayload,
-  CompareRolesPayload
 } from '@/lib/api/services/rbac-service';
 import { RootState } from '../store';
 
@@ -152,45 +148,6 @@ export const bulkAssignRolePermissions = createAsyncThunk(
     }
   }
 );
-
-// ==================== ENHANCED OPERATIONS ====================
-
-export const bulkAssignRolesToUser = createAsyncThunk(
-  'roles/bulkAssignRolesToUser',
-  async (payload: BulkAssignRolesPayload, { rejectWithValue }) => {
-    try {
-      const response = await RbacService.bulkAssignRolesToUser(payload);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Failed to bulk assign roles');
-    }
-  }
-);
-
-export const bulkRemoveRolesFromUser = createAsyncThunk(
-  'roles/bulkRemoveRolesFromUser',
-  async (payload: BulkRemoveRolesPayload, { rejectWithValue }) => {
-    try {
-      const response = await RbacService.bulkRemoveRolesFromUser(payload);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Failed to bulk remove roles');
-    }
-  }
-);
-
-export const bulkAssignUsersToRole = createAsyncThunk(
-  'roles/bulkAssignUsersToRole',
-  async (payload: BulkAssignUsersToRolePayload, { rejectWithValue }) => {
-    try {
-      const response = await RbacService.bulkAssignUsersToRole(payload);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Failed to bulk assign users');
-    }
-  }
-);
-
 export const cloneRole = createAsyncThunk(
   'roles/cloneRole',
   async (payload: CloneRolePayload, { rejectWithValue }) => {
@@ -202,18 +159,7 @@ export const cloneRole = createAsyncThunk(
     }
   }
 );
-
-export const compareRoles = createAsyncThunk(
-  'roles/compareRoles',
-  async (payload: CompareRolesPayload, { rejectWithValue }) => {
-    try {
-      const response = await RbacService.compareRoles(payload);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.message || 'Failed to compare roles');
-    }
-  }
-);
+ 
 
 // ==================== SELECTORS ====================
 
@@ -399,78 +345,6 @@ const rolesSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       });
-
-    // Bulk Assign Roles to User
-    builder
-      .addCase(bulkAssignRolesToUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(bulkAssignRolesToUser.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(bulkAssignRolesToUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-
-    // Bulk Remove Roles from User
-    builder
-      .addCase(bulkRemoveRolesFromUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(bulkRemoveRolesFromUser.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(bulkRemoveRolesFromUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-
-    // Bulk Assign Users to Role
-    builder
-      .addCase(bulkAssignUsersToRole.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(bulkAssignUsersToRole.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(bulkAssignUsersToRole.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-
-    // Clone Role
-    builder
-      .addCase(cloneRole.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(cloneRole.fulfilled, (state, action) => {
-        state.loading = false;
-        state.roles.unshift(action.payload.newRole);
-      })
-      .addCase(cloneRole.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-
-    // Compare Roles
-    builder
-      .addCase(compareRoles.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(compareRoles.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(compareRoles.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-    // ❌ REMOVE THE DUPLICATE BELOW - IT WAS ADDED AT THE END
   },
 });
 

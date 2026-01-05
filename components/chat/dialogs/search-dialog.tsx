@@ -96,7 +96,7 @@ export function SearchDialog({
     const parts = text.split(new RegExp(`(${q})`, 'gi'))
     return parts.map((part, i) => 
       part.toLowerCase() === q.toLowerCase() 
-        ? <mark key={i} className="bg-yellow-200/70 dark:bg-yellow-900/50 text-yellow-900 dark:text-yellow-100 rounded px-0.5 font-medium">{part}</mark> 
+        ? <mark key={i} className="bg-primary text-primary-foreground rounded px-0.5 font-medium">{part}</mark> 
         : part
     )
   }

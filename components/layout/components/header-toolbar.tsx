@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,6 +36,7 @@ import Notifications from "./notifications";
 import { toAbsoluteUrl } from "@/lib/helpers";
 import { ThemeCustomizerPanel } from "@/components/theme-customizer";
 import ThemeSwitch from "./theme-switch";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 export function HeaderToolbar() {
   const { theme, setTheme } = useTheme();
@@ -78,17 +80,23 @@ export function HeaderToolbar() {
   const displayName = user?.firstName || "User";
   const displayEmail = user?.email || "user@example.com";
   const initials = getInitials(user?.firstName || user?.firstName, user?.email);
+  const userRole = user?.userType || user?.user_type || "User";
+
+  const getProfileSlug = () => {
+    const type = user?.userType || user?.user_type;
+    if (type === 'creator') return 'creator';
+    if (type === 'brand_admin') return 'brand';
+    if (type === 'agency_admin') return 'agency';
+    return 'creator';
+  };
 
   if (!mounted) return <div className="h-10 w-32" />;
 
   return (
     <nav className="flex items-center gap-2">
-
-      {/* <Button mode="icon" variant="ghost" onClick={toggleTheme}>
-        {theme === "light" ? <Moon /> : <Sun />}
-      </Button> */}
       <ThemeSwitch />
       <ThemeCustomizerPanel />
+      <NotificationDropdown />
       <Separator orientation="vertical" className="mx-2 h-4" />
 
       <DropdownMenu>
@@ -108,6 +116,9 @@ export function HeaderToolbar() {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{displayName}</span>
                 <span className="text-muted-foreground truncate text-xs">{displayEmail}</span>
+                <Badge variant="success" appearance="outline" size="sm" className="mt-1">
+                  {userRole}
+                </Badge>
               </div>
             </div>
           </DropdownMenuLabel>
@@ -115,24 +126,17 @@ export function HeaderToolbar() {
           <DropdownMenuSeparator />
 
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              <Sparkles />
-              Upgrade to Pro
+            <DropdownMenuItem onClick={() => router.push(`/dashboard/profiles/${getProfileSlug()}`)}>
+              <User />
+              Profile Settings
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuGroup>
             <DropdownMenuItem>
               <BadgeCheck />
               Account
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push("/dashboard/billing")}>
               <CreditCard />
               Billing
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Bell />
-              Notifications
             </DropdownMenuItem>
           </DropdownMenuGroup>
 

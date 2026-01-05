@@ -14,7 +14,6 @@ class EncryptedApiClient {
   private masterKey: Buffer;
   private readonly ALGORITHM = 'aes-256-gcm';
   private readonly IV_LENGTH = 16;
-  private readonly AUTH_TAG_LENGTH = 16;
   private readonly KEY_LENGTH = 32;
   private isRefreshing = false;
   private refreshQueue: Array<{
@@ -170,8 +169,8 @@ class EncryptedApiClient {
         const originalRequest = error.config;
         const requestId = originalRequest?.headers?.['X-Request-ID'];
 
-        // Don't retry refresh endpoint
-        if (originalRequest?.url?.includes('auth/refresh')) {
+        // Don't retry refresh endpoint or login endpoint
+        if (originalRequest?.url?.includes('auth/refresh') || originalRequest?.url?.includes('auth/login')) {
           return Promise.reject(error);
         }
 

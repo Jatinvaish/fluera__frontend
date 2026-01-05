@@ -21,7 +21,6 @@ import { DataGridPagination } from '@/components/ui/data-grid-pagination';
 import { DataGridTable } from '@/components/ui/data-grid-table';
 import { Input } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -70,16 +69,26 @@ export default function PermissionsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [permissionToDelete, setPermissionToDelete] = useState<Permission | null>(null);
+  const [inputValue, setInputValue] = useState(searchQuery);
+
+  const handleSearch = () => {
+    setSearchQuery(inputValue);
+    setPagination({ ...pagination, pageIndex: 0 });
+  };
 
   useEffect(() => {
+    const sortBy = sorting[0]?.id || 'created_at';
+    const sortOrder: 'ASC' | 'DESC' = sorting[0]?.desc ? 'DESC' : 'ASC';
     dispatch(fetchPermissions({
       page: pagination.pageIndex + 1,
       limit: pagination.pageSize,
-      scope: 'all', // ← ADD THIS
+      scope: 'all',
       category: categoryFilter === 'all' ? undefined : categoryFilter,
-      // NO search parameter
+      search: searchQuery,
+      sortBy,
+      sortOrder,
     }));
-  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchQuery, categoryFilter]);
+  }, [dispatch, pagination.pageIndex, pagination.pageSize, searchQuery, categoryFilter, JSON.stringify(sorting)]);
 
   const handleDeleteClick = (permission: Permission) => {
     setPermissionToDelete(permission);
@@ -122,7 +131,6 @@ export default function PermissionsPage() {
             </div>
           );
         },
-        size: 250,
         enableSorting: true,
         enableHiding: false,
       },
@@ -137,7 +145,6 @@ export default function PermissionsPage() {
             {row.original.description || '-'}
           </div>
         ),
-        size: 300,
         enableSorting: false,
         enableHiding: true,
       },
@@ -150,7 +157,6 @@ export default function PermissionsPage() {
         cell: ({ row }) => (
           <Badge variant="secondary">{row.original.category || 'Uncategorized'}</Badge>
         ),
-        size: 150,
         enableSorting: true,
         enableHiding: true,
       },
@@ -168,7 +174,6 @@ export default function PermissionsPage() {
             </Badge>
           );
         },
-        size: 100,
         enableSorting: true,
         enableHiding: true,
       },
@@ -191,7 +196,6 @@ export default function PermissionsPage() {
             <ChevronRight className="text-muted-foreground/70 size-3.5" />
           </div>
         ),
-        size: 80,
         enableSorting: false,
         enableHiding: false,
         enableResizing: false,
@@ -215,78 +219,19 @@ export default function PermissionsPage() {
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
   });
 
-  const DataGridToolbar = () => {
-    const [inputValue, setInputValue] = useState(searchQuery);
-
-    const handleSearch = () => {
-      setSearchQuery(inputValue);
-      setPagination({ ...pagination, pageIndex: 0 });
-    };
-
-    return (
-      <CardHeader className="flex-col flex-wrap sm:flex-row items-stretch sm:items-center py-5">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-          <div className="relative">
-            <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder="Search permissions"
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              disabled={isLoading}
-              className="ps-9 w-full sm:w-64"
-            />
-            {searchQuery.length > 0 && (
-              <Button
-                mode="icon"
-                variant="dim"
-                className="absolute end-1.5 top-1/2 -translate-y-1/2 h-6 w-6"
-                onClick={() => setSearchQuery('')}
-              >
-                <X />
-              </Button>
-            )}
-          </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
-            <SelectTrigger className="w-full sm:w-36">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Access Control">Access Control</SelectItem>
-              <SelectItem value="User Management">User Management</SelectItem>
-              <SelectItem value="Content">Content</SelectItem>
-              <SelectItem value="Settings">Settings</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center justify-end">
-          <IfHasAccess menuKey="access-control.permissions.create">
-            <Button disabled={isLoading} onClick={() => setCreateDialogOpen(true)}>
-              <Plus />
-              Create Permission
-            </Button>
-          </IfHasAccess>
-        </div>
-      </CardHeader>
-    );
-  };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <ProtectedBreadcrumb
         items={[
-          { label: 'Access Control', menuKey: 'access-control', href: '/dashboard/access-control' },
           {
             label: 'Permissions',
-            menuKey: 'access-control.permissions',
+            menuKey: 'dashboard.access-control.permissions',
             href: '/dashboard/access-control/permissions',
             isCurrent: true,
           },
@@ -305,15 +250,59 @@ export default function PermissionsPage() {
         }}
         tableClassNames={{ edgeCell: 'px-5' }}
       >
-        <Card>
-          <DataGridToolbar />
-          <CardTable>
-            <ScrollArea>
+        <Card className="py-4 gap-3">
+          <CardHeader className="px-4 sm:px-4">
+            <div className="flex flex-col gap-4">
+              <div className="relative w-full lg:flex-1">
+                <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  placeholder="Search permissions"
+                  value={inputValue}
+                  onChange={e => setInputValue(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                  disabled={isLoading}
+                  className="ps-9 w-full sm:w-64"
+                />
+                {searchQuery.length > 0 && (
+                  <Button
+                    mode="icon"
+                    variant="dim"
+                    className="absolute end-1.5 top-1/2 -translate-y-1/2 h-6 w-6"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <X />
+                  </Button>
+                )}
+              </div>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
+                <SelectTrigger className="w-full sm:w-36">
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="Access Control">Access Control</SelectItem>
+                  <SelectItem value="User Management">User Management</SelectItem>
+                  <SelectItem value="Content">Content</SelectItem>
+                  <SelectItem value="Settings">Settings</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-end">
+              <IfHasAccess menuKey="access-control.permissions.create">
+                <Button disabled={isLoading} onClick={() => setCreateDialogOpen(true)}>
+                  <Plus />
+                  Create Permission
+                </Button>
+              </IfHasAccess>
+            </div>
+          </CardHeader>
+          <CardTable className="overflow-x-auto">
+            <ScrollArea className="w-full">
               <DataGridTable />
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </CardTable>
-          <CardFooter>
+          <CardFooter className="px-4 sm:px-4">
             <DataGridPagination />
           </CardFooter>
         </Card>

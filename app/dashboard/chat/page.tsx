@@ -347,21 +347,21 @@ const ChatPage = () => {
         });
 
         messageElement.classList.add(
-          "bg-yellow-100/50",
-          "dark:bg-yellow-900/20",
+          "bg-primary/20",
+          "text-primary-foreground",
           "transition-colors",
           "duration-500",
           "ring-2",
-          "ring-yellow-400/50",
+          "ring-primary/50",
           "rounded-lg"
         );
 
         setTimeout(() => {
           messageElement.classList.remove(
-            "bg-yellow-100/50",
-            "dark:bg-yellow-900/20",
+            "bg-primary/20",
+            "text-primary-foreground",
             "ring-2",
-            "ring-yellow-400/50"
+            "ring-primary/50"
           );
         }, 3000);
       } else {

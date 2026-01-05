@@ -155,10 +155,10 @@ export function Sidebar({
                       className={cn(
                         "hover:bg-sidebar-accent flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors overflow-hidden",
                         activeId === dm.id
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-2 border-primary"
                           : "text-sidebar-foreground"
                       )}>
-                      <div className="relative h-8 w-8 flex-shrink-0 rounded-full bg-muted flex items-center justify-center text-foreground text-xs font-semibold">
+                      <div className="relative h-9 w-9 flex-shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-foreground text-sm font-semibold">
                         {dm.name?.charAt(0)?.toUpperCase() || '?'}
                         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-sidebar" />
                       </div>
@@ -206,10 +206,10 @@ export function Sidebar({
                       className={cn(
                         "hover:bg-sidebar-accent flex  w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                         activeId === channel.id
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground border-l-2 border-primary"
                           : "text-sidebar-foreground"
                       )}>
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-muted">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded bg-muted border border-border">
                         {channel.isPrivate ? (
                           <Lock className="h-4 w-4 text-muted-foreground" />
                         ) : (

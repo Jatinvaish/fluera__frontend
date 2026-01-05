@@ -1,152 +1,150 @@
 // config/menu-structure.ts - MENU DEFINITION
 export const MENU_STRUCTURE = [
   {
-    key: 'dashboard',
+    key: 'dashboard.access',
     title: 'Dashboard',
     icon: 'LayoutDashboard',
     path: '/dashboard',
+    is_primary_sidebar: true,
+    is_show_with_lock_if_no_access: true,
     order: 1,
   },
   {
-    key: 'access-control',
+    key: 'dashboard.access-control.access',
     title: 'Access Control',
     icon: 'Shield',
     path: '/dashboard/access-control',
     order: 2,
+    is_primary_sidebar: true,
+    is_show_with_lock_if_no_access: false,
     children: [
       {
-        key: 'access-control.roles',
-        title: 'Roles',
-        icon: 'Shield',
-        path: '/dashboard/access-control/roles',
+        key: 'dashboard.access-control.access',
+        title: 'Access Control',
+        icon: '',
+        path: '',
+        is_show_with_lock_if_no_access: false,
         order: 1,
+        children: [
+          {
+            key: 'dashboard.access-control.roles.access',
+            title: 'Roles',
+            icon: 'Shield',
+            path: '/dashboard/access-control/roles',
+            is_show_with_lock_if_no_access: false,
+            order: 1,
+          }, {
+            key: 'dashboard.access-control.permissions.access',
+            title: 'Permissions',
+            icon: 'Key',
+            path: '/dashboard/access-control/permissions',
+            is_show_with_lock_if_no_access: false,
+            order: 2,
+          },
+          {
+            key: 'dashboard.access-control.menu-permissions.access',
+            title: 'Menu Permissions',
+            icon: 'Menu',
+            path: '/dashboard/access-control/menu-permissions',
+            is_show_with_lock_if_no_access: false,
+            order: 3,
+          },
+          {
+            key: 'dashboard.access-control.users.access',
+            title: 'Users',
+            icon: 'User',
+            path: '/dashboard/access-control/users',
+            is_show_with_lock_if_no_access: false,
+            order: 4,
+          },
+        ]
       },
       {
-        key: 'access-control.permissions',
-        title: 'Permissions',
-        icon: 'Key',
-        path: '/dashboard/access-control/permissions',
+        key: 'dashboard.subscriptions.access',
+        title: 'Subscription',
+        icon: '',
+        path: '/dashboard/access-control',
         order: 2,
-      },
-      {
-        key: 'access-control.role-permissions',
-        title: 'Role Permissions',
-        icon: 'ShieldCheck',
-        path: '/dashboard/access-control/role-permissions',
-        order: 3,
-      },
-      {
-        key: 'access-control.user-roles',
-        title: 'User Roles',
-        icon: 'UserCheck',
-        path: '/dashboard/access-control/user-roles',
-        order: 4,
-      },
-      {
-        key: 'access-control.menu-permissions',
-        title: 'Menu Permissions',
-        icon: 'Menu',
-        path: '/dashboard/access-control/menu-permissions',
-        order: 5,
+        is_show_with_lock_if_no_access: false,
+        children: [
+          {
+            key: 'dashboard.subscriptions.plans.access',
+            title: 'Plans',
+            icon: 'CreditCard',
+            path: '/dashboard/subscription-management/plans',
+            is_show_with_lock_if_no_access: false,
+            order: 1,
+          },
+          {
+            key: 'dashboard.subscriptions.offers.access',
+            title: 'Offers',
+            icon: 'Tag',
+            path: '/dashboard/subscription-management/offers',
+            is_show_with_lock_if_no_access: false,
+            order: 2,
+          },
+          {
+            key: 'dashboard.subscriptions.features.access',
+            title: 'Features',
+            icon: 'Sparkles',
+            path: '/dashboard/subscription-management/features',
+            is_show_with_lock_if_no_access: false,
+            order: 3,
+          },
+          {
+            key: 'dashboard.subscriptions.features-permission.access',
+            title: 'Features Permissions',
+            icon: 'Lock',
+            path: '/dashboard/subscription-management/features-permission',
+            is_show_with_lock_if_no_access: false,
+            order: 4,
+          },
+        ]
       },
     ],
   },
+  {
+    key: 'dashboard.billing.access',
+    title: 'Billing',
+    icon: 'Wallet',
+    path: '/dashboard/billing',
+    order: 4,
+    is_primary_sidebar: true,
+    is_show_with_lock_if_no_access: false,
+    children: [
+      {
+        key: 'dashboard.billing.access',
+        title: 'Billing Overview',
+        icon: 'CreditCard',
+        path: '/dashboard/billing',
+        is_show_with_lock_if_no_access: false,
+        order: 1,
+      },
+      {
+        key: 'dashboard.billing.plans.access',
+        title: 'Plans',
+        icon: 'Package',
+        path: '/dashboard/billing/plans',
+        is_show_with_lock_if_no_access: false,
+        order: 2,
+      },
+      {
+        key: 'dashboard.billing.payment-methods.access',
+        title: 'Payment Methods',
+        icon: 'CreditCard',
+        path: '/dashboard/billing/payment-methods',
+        is_show_with_lock_if_no_access: false,
+        order: 3,
+      }
+    ]
+  },
+  {
+    key: 'dashboard.chat.access',
+    title: 'Chat',
+    icon: 'MessagesSquare',
+    path: '/dashboard/chat',
+    order: 5,
+    is_primary_sidebar: true,
+    is_show_with_lock_if_no_access: false,
+  },
 ];
-
-// // ============================================
-// // FILE 4: lib/api/menu-structure.ts - PRODUCTION
-// // ============================================
-// export interface MenuItem {
-//   key: string;
-//   title: string;
-//   icon: string;
-//   path: string;
-//   order: number;
-//   description?: string;
-//   children?: MenuItem[];
-// }
-
-// export const MENU_STRUCTURE: MenuItem[] = [
-//   {
-//     key: 'dashboard',
-//     title: 'Dashboard',
-//     icon: 'LayoutDashboard',
-//     path: '/dashboard',
-//     order: 1,
-//     description: 'Main dashboard overview'
-//   },
-//   {
-//     key: 'access-control',
-//     title: 'Access Control',
-//     icon: 'Shield',
-//     path: '/dashboard/access-control',
-//     order: 2,
-//     description: 'RBAC and permissions management',
-//     children: [
-//       {
-//         key: 'access-control.roles',
-//         title: 'Roles',
-//         icon: 'Shield',
-//         path: '/dashboard/access-control/roles',
-//         order: 1,
-//         description: 'Manage system roles'
-//       },
-//       {
-//         key: 'access-control.permissions',
-//         title: 'Permissions',
-//         icon: 'Key',
-//         path: '/dashboard/access-control/permissions',
-//         order: 2,
-//         description: 'Manage permissions'
-//       },
-//       {
-//         key: 'access-control.role-permissions',
-//         title: 'Role Permissions',
-//         icon: 'ShieldCheck',
-//         path: '/dashboard/access-control/role-permissions',
-//         order: 3,
-//         description: 'Map permissions to roles'
-//       },
-//       {
-//         key: 'access-control.user-roles',
-//         title: 'User Roles',
-//         icon: 'UserCheck',
-//         path: '/dashboard/access-control/user-roles',
-//         order: 4,
-//         description: 'Assign roles to users'
-//       },
-//       {
-//         key: 'access-control.menu-permissions',
-//         title: 'Menu Permissions',
-//         icon: 'Menu',
-//         path: '/dashboard/access-control/menu-permissions',
-//         order: 5,
-//         description: 'Control menu visibility'
-//       }
-//     ]
-//   }
-// ];
-
-// const flattenMenuItems = (menus: MenuItem[]): MenuItem[] => {
-//   const flattened: MenuItem[] = [];
-//   const flatten = (items: MenuItem[]) => {
-//     items.forEach(item => {
-//       flattened.push(item);
-//       if (item.children && item.children.length > 0) {
-//         flatten(item.children);
-//       }
-//     });
-//   };
-//   flatten(menus);
-//   return flattened;
-// };
-
-// export const FLAT_MENU_ITEMS: MenuItem[] = flattenMenuItems(MENU_STRUCTURE);
-
-// export const getMenuItemByKey = (key: string): MenuItem | undefined => {
-//   return FLAT_MENU_ITEMS.find(item => item.key === key);
-// };
-
-// export const getAllMenuKeys = (): string[] => {
-//   return FLAT_MENU_ITEMS.map(item => item.key);
-// };

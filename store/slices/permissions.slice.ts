@@ -1,6 +1,6 @@
 // store/slices/permissions.slice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { RbacService, Permission, CreatePermissionPayload, ListParams } from '@/lib/api/services/rbac-service';
+import { RbacService, Permission, CreatePermissionPayload, ListParams, ListPermissionsParams } from '@/lib/api/services/rbac-service';
 
 interface PermissionsState {
   permissions: Permission[];
@@ -33,12 +33,7 @@ const initialState: PermissionsState = {
 // Update fetchPermissions thunk to match backend DTO
 export const fetchPermissions = createAsyncThunk(
   'permissions/fetchPermissions',
-  async (params: {
-    page?: number;
-    limit?: number;
-    category?: string;
-    scope?: 'all' | 'system' | 'custom'; // ← ADD THIS
-  }) => {
+  async (params: ListPermissionsParams) => {
     const response = await RbacService.listPermissions(params);
     return response.data;
   }

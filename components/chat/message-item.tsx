@@ -123,17 +123,7 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-
-  console.log('🟢 [MESSAGE-ITEM] FileAttachment render:', {
-    fileId: file.id,
-    fileName: file.name,
-    hasUrl: !!file.url,
-    url: file.url,
-    hasThumbnail: !!file.thumbnailUrl,
-    thumbnailUrl: file.thumbnailUrl,
-    mimeType: file.mimeType
-  });
-
+ 
   const isImage = file.mimeType?.startsWith("image/");
   const isVideo = file.mimeType?.startsWith("video/");
   const isPdf = file.mimeType?.includes("pdf");
@@ -165,12 +155,7 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   // Image preview
   if (isImage && !imageError) {
     const imgSrc = (file as any).url || file.url;
-    console.log('🟢 [MESSAGE-ITEM] Rendering image with src:', {
-      fileId: file.id,
-      imgSrc,
-      fromAnyUrl: !!(file as any).url,
-      fromFileUrl: !!file.url
-    });
+     
     return (
       <div className="border-border group relative w-full aspect-square overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         {!isImageLoaded && (
@@ -201,12 +186,7 @@ const FileAttachment: React.FC<FileAttachmentProps & { onPreview?: () => void }>
   // Video preview
   if (isVideo) {
     const videoSrc = (file as any).url || file.url;
-    console.log('🟢 [MESSAGE-ITEM] Rendering video with src:', {
-      fileId: file.id,
-      videoSrc,
-      fromAnyUrl: !!(file as any).url,
-      fromFileUrl: !!file.url
-    });
+ 
     return (
       <div className="border-border group relative max-w-sm overflow-hidden rounded-lg border cursor-pointer" onClick={onPreview}>
         <video src={videoSrc} className="w-full max-h-80 object-cover" />
@@ -365,7 +345,9 @@ export function MessageItem({
       const existing = reactionMap.get(reaction.emoji);
       const reactorId = reaction.user_id || 0;
       const reactorName =
-        `${reaction.first_name || ""} ${reaction.last_name || ""}`.trim() || "Anonymous";
+      reaction.first_name ? 
+        `${reaction.first_name || ""} ${reaction.last_name || ""}`.trim() || "Anonymous":
+        `${reaction.user_name || ""}`.trim() || "Anonymous";
       const userReacted = reactorId.toString() === currentUserId;
 
       if (existing) {

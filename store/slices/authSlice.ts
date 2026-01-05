@@ -271,6 +271,20 @@ export const createCreator = createAsyncThunk(
   }
 );
 
+export const switchTenant = createAsyncThunk(
+  "auth/switchTenant",
+  async (tenantId: number, { rejectWithValue }) => {
+    try {
+      const response = await AuthService.switchTenant(tenantId);
+      const { user, accessToken, refreshToken } = response.data;
+      storeAuthData(user, accessToken, refreshToken);
+      return { user, accessToken, refreshToken };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
   try {
     await AuthService.logout();
@@ -829,6 +843,23 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
         state.initialized = true;
+      })
+
+      // Switch Tenant
+      .addCase(switchTenant.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(switchTenant.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+      })
+      .addCase(switchTenant.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   }
 });

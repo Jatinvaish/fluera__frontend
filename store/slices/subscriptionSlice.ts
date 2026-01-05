@@ -11,6 +11,7 @@ interface Plan {
   plan_tier: string;
   is_free: boolean;
   price_monthly?: number;
+  price_quarterly?: number;
   price_yearly?: number;
   features?: any;
   max_staff?: number;
@@ -39,6 +40,8 @@ interface SubscriptionState {
   currentSubscription: Subscription | null;
   subscriptionHistory: any[];
   subscriptionStatus: any | null;
+  paymentMethods: any[];
+  availableOffers: any[];
   isLoading: boolean;
   error: string | null;
 }
@@ -48,6 +51,8 @@ const initialState: SubscriptionState = {
   currentSubscription: null,
   subscriptionHistory: [],
   subscriptionStatus: null,
+  paymentMethods: [],
+  availableOffers: [],
   isLoading: false,
   error: null
 };
@@ -136,6 +141,66 @@ export const fetchSubscriptionStatus = createAsyncThunk(
   }
 );
 
+export const fetchPaymentMethods = createAsyncThunk(
+  "subscription/fetchPaymentMethods",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await SubscriptionService.getPaymentMethods();
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const addPaymentMethod = createAsyncThunk(
+  "subscription/addPaymentMethod",
+  async (payload: any, { rejectWithValue }) => {
+    try {
+      const response = await SubscriptionService.addPaymentMethod(payload);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const deletePaymentMethod = createAsyncThunk(
+  "subscription/deletePaymentMethod",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await SubscriptionService.deletePaymentMethod(id);
+      return { id, ...response.data };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const fetchAvailableOffers = createAsyncThunk(
+  "subscription/fetchAvailableOffers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await SubscriptionService.getAvailableOffers();
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const applyOffer = createAsyncThunk(
+  "subscription/applyOffer",
+  async (offerCode: string, { rejectWithValue }) => {
+    try {
+      const response = await SubscriptionService.applyOffer(offerCode);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
 const subscriptionSlice = createSlice({
   name: "subscription",
   initialState,
@@ -193,6 +258,33 @@ const subscriptionSlice = createSlice({
       })
       .addCase(fetchSubscriptionStatus.fulfilled, (state, action) => {
         state.subscriptionStatus = action.payload.data || action.payload;
+      })
+      .addCase(fetchPaymentMethods.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchPaymentMethods.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.paymentMethods = action.payload.data || action.payload || [];
+      })
+      .addCase(fetchPaymentMethods.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(addPaymentMethod.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(addPaymentMethod.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(addPaymentMethod.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(deletePaymentMethod.fulfilled, (state, action) => {
+        state.paymentMethods = state.paymentMethods.filter(pm => pm.id !== action.payload.id);
+      })
+      .addCase(fetchAvailableOffers.fulfilled, (state, action) => {
+        state.availableOffers = action.payload.data || action.payload || [];
       });
   }
 });
@@ -203,6 +295,8 @@ export const selectPlans = (state: RootState) => state.subscription.plans;
 export const selectCurrentSubscription = (state: RootState) => state.subscription.currentSubscription;
 export const selectSubscriptionHistory = (state: RootState) => state.subscription.subscriptionHistory;
 export const selectSubscriptionStatus = (state: RootState) => state.subscription.subscriptionStatus;
+export const selectPaymentMethods = (state: RootState) => state.subscription.paymentMethods;
+export const selectAvailableOffers = (state: RootState) => state.subscription.availableOffers;
 export const selectSubscriptionLoading = (state: RootState) => state.subscription.isLoading;
 export const selectSubscriptionError = (state: RootState) => state.subscription.error;
 

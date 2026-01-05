@@ -165,6 +165,11 @@ export class AuthService {
     return encryptedApiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
   }
 
+  // Switch Tenant
+  static async switchTenant(tenantId: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.AUTH.SWITCH_TENANT, { tenantId });
+  }
+
   static updateAuthCookies(data: { accessToken?: string; refreshToken?: string; user?: any }) {
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const cookieOptions: any = { expires: 7, path: "/" };

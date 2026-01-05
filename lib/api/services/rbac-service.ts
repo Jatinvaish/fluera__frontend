@@ -18,7 +18,10 @@ export interface ListPermissionsParams {
   page?: number;
   limit?: number;
   category?: string;
-  scope?: 'all' | 'system' | 'custom'; // ✅ Add scope
+  scope?: 'all' | 'system' | 'custom';
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
 }
 export interface UpdateRolePayload {
   roleId: number;
@@ -87,22 +90,12 @@ export interface AssignPermissionsPayload {
   permissionKeys: string[];
 }
 
-export interface BulkAssignPermissionsPayload {
-  roleId: number;
-  changes: Array<{ mode: 'I' | 'D'; permissionId: number }>;
-}
-export interface BulkAssignPermissionsResponse {
-  assigned_permissions: number;
-  deleted_permissions: number;
-  total_changes: number;
-  current_total_permissions: number;
-  filtered_out?: number;
-}
+ 
 export interface PermissionTree {
   roleId: number;
   permissions_tree: Array<{
     category: string;
-    permissions: Array<{  
+    permissions: Array<{
       id: number;
       permission_key: string;
       resource: string;
@@ -252,25 +245,6 @@ export interface RoleLimit {
   updated_at?: string;
 }
 
-// =============================================
-// ENHANCED OPERATIONS INTERFACES
-// =============================================
-
-export interface BulkAssignRolesPayload {
-  userId: number;
-  roleIds: number[];
-}
-
-export interface BulkRemoveRolesPayload {
-  userId: number;
-  roleIds: number[];
-}
-
-export interface BulkAssignUsersToRolePayload {
-  roleId: number;
-  userIds: number[];
-}
-
 export interface CloneRolePayload {
   sourceRoleId: number;
   newName: string;
@@ -279,92 +253,7 @@ export interface CloneRolePayload {
   copyPermissions?: boolean;
   copyLimits?: boolean;
 }
-
-export interface CompareRolesPayload {
-  roleId1: number;
-  roleId2: number;
-}
-
-export interface SearchPermissionsPayload {
-  search?: string;
-  resource?: string;
-  category?: string;
-  action?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface GetAvailablePermissionsPayload {
-  roleId: number;
-  category?: string;
-  search?: string;
-}
-
-export interface GetMenuHierarchyPayload {
-  userId?: number;
-  includeBlockedReasons?: boolean;
-}
-
-export interface GetTenantRolesPayload {
-  includeSystemRoles?: boolean;
-  status?: 'active' | 'inactive' | 'all';
-}
-
-export interface TransferRoleOwnershipPayload {
-  roleId: number;
-  newTenantId: number;
-}
-
-export interface ValidateRoleAssignmentPayload {
-  userId: number;
-  roleId: number;
-}
-
-export interface ValidateRoleNamePayload {
-  roleName: string;
-  tenantId?: number;
-  excludeRoleId?: number;
-}
-
-export interface GetRoleAssignmentHistoryPayload {
-  userId?: number;
-  roleId?: number;
-  startDate?: string;
-  endDate?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface GetUserAccessReportPayload {
-  userId: number;
-  includeInheritedPermissions?: boolean;
-  includeMenuAccess?: boolean;
-  includeResourcePermissions?: boolean;
-}
-
-export interface UserAccessReport {
-  user: {
-    id: number;
-    email: string;
-    first_name?: string;
-    last_name?: string;
-    user_type?: string;
-  };
-  roles: Role[];
-  permissions: Permission[];
-  accessibleMenus: Array<{
-    key: string;
-    title: string;
-    path: string;
-  }>;
-  summary: {
-    totalRoles: number;
-    totalPermissions: number;
-    accessibleMenusCount: number;
-    highestHierarchy: number;
-  };
-}
-
+ 
 // =============================================
 // RBAC SERVICE CLASS
 // =============================================
@@ -424,6 +313,9 @@ export class RbacService {
       limit: params.limit || 100,
       category: params.category,
       scope: params.scope || 'all',
+      search: params.search,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
     });
   }
 
@@ -655,64 +547,6 @@ export class RbacService {
     return encryptedApiClient.post(API_ENDPOINTS.RBAC.ROLE_LIMITS.GET, { roleId });
   }
 
-  // ==================== ENHANCED OPERATIONS ====================
-
-  static async bulkAssignRolesToUser(payload: BulkAssignRolesPayload): Promise<{
-    success: boolean;
-    data: {
-      userId: number;
-      totalRequested: number;
-      successCount: number;
-      failedCount: number;
-      results: Array<{
-        roleId: number;
-        status: 'success' | 'failed' | 'skipped';
-        reason?: string;
-        roleName?: string;
-      }>;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.BULK_ASSIGN_ROLES, payload);
-  }
-
-  static async bulkRemoveRolesFromUser(payload: BulkRemoveRolesPayload): Promise<{
-    success: boolean;
-    data: {
-      userId: number;
-      totalRequested: number;
-      successCount: number;
-      failedCount: number;
-      results: Array<{
-        roleId: number;
-        status: 'success' | 'failed' | 'skipped';
-        reason?: string;
-        roleName?: string;
-      }>;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.BULK_REMOVE_ROLES, payload);
-  }
-
-  static async bulkAssignUsersToRole(payload: BulkAssignUsersToRolePayload): Promise<{
-    success: boolean;
-    data: {
-      roleId: number;
-      roleName: string;
-      totalRequested: number;
-      successCount: number;
-      failedCount: number;
-      results: Array<{
-        userId: number;
-        status: 'success' | 'failed' | 'skipped';
-        reason?: string;
-        userEmail?: string;
-        userName?: string;
-      }>;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.BULK_ASSIGN_USERS, payload);
-  }
-
   static async cloneRole(payload: CloneRolePayload): Promise<{
     success: boolean;
     data: {
@@ -726,227 +560,19 @@ export class RbacService {
       copiedLimits: number;
     };
   }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.CLONE_ROLE, payload);
+    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ROLES.CLONE_ROLE, payload);
   }
-
-  static async compareRoles(payload: CompareRolesPayload): Promise<{
-    success: boolean;
-    data: {
-      role1: {
-        id: number;
-        name: string;
-        display_name: string;
-        hierarchy_level: number;
-        total_permissions: number;
-      };
-      role2: {
-        id: number;
-        name: string;
-        display_name: string;
-        hierarchy_level: number;
-        total_permissions: number;
-      };
-      comparison: {
-        common_permissions: number;
-        unique_to_role1: number;
-        unique_to_role2: number;
-        similarity_percentage: number;
-      };
-      permissions: {
-        common: Permission[];
-        only_in_role1: Permission[];
-        only_in_role2: Permission[];
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.COMPARE_ROLES, payload);
-  }
-
-  static async searchPermissions(payload: SearchPermissionsPayload): Promise<{
+  static async getAssignablePermissions(): Promise<{
     success: boolean;
     data: {
       permissions: Permission[];
-      meta: {
-        currentPage: number;
-        itemsPerPage: number;
-        totalItems: number;
-        totalPages: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.SEARCH_PERMISSIONS, payload);
-  }
-
-  static async getAvailablePermissionsForRole(payload: GetAvailablePermissionsPayload): Promise<{
-    success: boolean;
-    data: {
-      roleId: number;
-      availablePermissions: Permission[];
       groupedByCategory: Record<string, Permission[]>;
-      totalAvailable: number;
+      totalAssignable: number;
+      isGlobalAdmin: boolean;
     };
   }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.AVAILABLE_PERMISSIONS, payload);
+    return encryptedApiClient.post(API_ENDPOINTS.RBAC.PERMISSIONS.ASSIGNABLE, {});
   }
-
-  static async getMenuHierarchyWithAccess(payload: GetMenuHierarchyPayload): Promise<{
-    success: boolean;
-    data: {
-      userId: number;
-      hierarchy: any[];
-      summary: {
-        totalMenus: number;
-        accessibleMenus: number;
-        blockedMenus: number;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.MENU_HIERARCHY, payload);
-  }
-
-  static async getBlockedMenus(payload: { userId?: number }): Promise<{
-    success: boolean;
-    data: {
-      userId: number;
-      blockedMenus: Array<{
-        key: string;
-        title: string;
-        path: string;
-        blockedReasons: string[];
-        requiredPermissions: string[];
-      }>;
-      totalBlocked: number;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.BLOCKED_MENUS, payload);
-  }
-
-  static async getTenantRoles(payload: GetTenantRolesPayload): Promise<{
-    success: boolean;
-    data: {
-      tenantId: number;
-      includeSystemRoles: boolean;
-      roles: Role[];
-      summary: {
-        totalRoles: number;
-        systemRoles: number;
-        customRoles: number;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.TENANT_ROLES, payload);
-  }
-
-  static async validateRoleAssignment(payload: ValidateRoleAssignmentPayload): Promise<{
-    success: boolean;
-    data: {
-      canAssign: boolean;
-      reason?: string;
-      roleName?: string;
-      roleHierarchy?: number;
-      requestorHierarchy?: number;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.VALIDATE_ASSIGNMENT, payload);
-  }
-
-  static async validateRoleName(payload: ValidateRoleNamePayload): Promise<{
-    success: boolean;
-    data: {
-      isAvailable: boolean;
-      roleName: string;
-      conflict?: any;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.VALIDATE_NAME, payload);
-  }
-
-  static async getRoleAssignmentHistory(payload: GetRoleAssignmentHistoryPayload): Promise<{
-    success: boolean;
-    data: {
-      history: any[];
-      meta: {
-        currentPage: number;
-        itemsPerPage: number;
-        totalItems: number;
-        totalPages: number;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.ROLE_ASSIGNMENT_HISTORY, payload);
-  }
-
-  static async getUserAccessReport(payload: GetUserAccessReportPayload): Promise<{
-    success: boolean;
-    data: UserAccessReport;
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.USER_ACCESS_REPORT, payload);
-  }
-
-  static async getRolesByHierarchy(payload: {
-    tenantId?: number;
-    minLevel?: number;
-    maxLevel?: number;
-  }): Promise<{
-    success: boolean;
-    data: {
-      roles: Role[];
-      filters: {
-        minLevel?: number;
-        maxLevel?: number;
-        tenantId?: number;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.ROLES_BY_HIERARCHY, payload);
-  }
-
-  static async getUnassignedUsers(payload: {
-    tenantId?: number;
-    page?: number;
-    limit?: number;
-  }): Promise<{
-    success: boolean;
-    data: {
-      users: any[];
-      meta: {
-        currentPage: number;
-        itemsPerPage: number;
-        totalItems: number;
-        totalPages: number;
-      };
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.UNASSIGNED_USERS, payload);
-  }
-
-  static async getRoleUsageStats(payload: {
-    tenantId?: number;
-    roleId?: number;
-    period?: string;
-  }): Promise<{
-    success: boolean;
-    data: {
-      stats: any[];
-      period?: string;
-      tenantId: number;
-    };
-  }> {
-    return encryptedApiClient.post(API_ENDPOINTS.RBAC.ENHANCED.ROLE_USAGE_STATS, payload);
-  }
-  static async getAssignablePermissions(): Promise<{
-  success: boolean;
-  data: {
-    permissions: Permission[];
-    groupedByCategory: Record<string, Permission[]>;
-    totalAssignable: number;
-    isGlobalAdmin: boolean;
-  };
-}> {
-  return encryptedApiClient.post(API_ENDPOINTS.RBAC.PERMISSIONS.ASSIGNABLE, {});
-}
 }
 
 export const rbacService = RbacService;

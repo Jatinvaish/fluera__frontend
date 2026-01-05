@@ -98,7 +98,7 @@ export default function SignUpPasswordPage() {
         <CardHeader className="text-center pb-2 space-y-0.5">
           <div className="inline-flex items-center gap-2 mb-0 justify-center pr-3">
             <img
-              src="/fluera_new_logo.png"
+              src="/fluera-logo.svg"
               alt="Fluera logo"
               className="h-9 w-30"
             />

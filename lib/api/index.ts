@@ -6,4 +6,5 @@ export {
 } from './services/auth-service';
 export { SystemConfigService } from './services/system-config-service';
 export { encryptedApiClient } from './encrypted-client';
-export { RbacService } from './services/rbac-service'; // ADD THIS
+export { RbacService } from './services/rbac-service';
+export { ProfileService, type CreatorProfile, type BrandProfile, type AgencyProfile } from './services/profile-service'; 

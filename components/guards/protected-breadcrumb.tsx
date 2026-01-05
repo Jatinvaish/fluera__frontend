@@ -43,7 +43,7 @@ export function ProtectedBreadcrumb({ items }: ProtectedBreadcrumbProps) {
           const isLast = index === items.length - 1;
 
           return (
-            <div key={item.menuKey} className="flex items-center gap-2">
+            <div key={index+1} className="flex items-center gap-2">
               <BreadcrumbSeparator>
                 <ChevronRight className="h-4 w-4" />
               </BreadcrumbSeparator>

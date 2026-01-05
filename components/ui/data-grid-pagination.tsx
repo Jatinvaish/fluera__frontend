@@ -39,9 +39,9 @@ function DataGridPagination(props: DataGridPaginationProps) {
   const btnArrowClasses = btnBaseClasses + ' rtl:transform rtl:rotate-180';
   const pageIndex = table.getState().pagination.pageIndex;
   const pageSize = table.getState().pagination.pageSize;
+  const pageCount = table.getPageCount();
   const from = pageIndex * pageSize + 1;
   const to = Math.min((pageIndex + 1) * pageSize, recordCount);
-  const pageCount = table.getPageCount();
 
   // Replace placeholders in paginationInfo
   const paginationInfo = mergedProps?.info
@@ -140,6 +140,11 @@ function DataGridPagination(props: DataGridPaginationProps) {
               onValueChange={(value) => {
                 const newPageSize = Number(value);
                 table.setPageSize(newPageSize);
+                // Reset to first page if current page is out of bounds
+                const newPageCount = Math.ceil(recordCount / newPageSize);
+                if (pageIndex >= newPageCount) {
+                  table.setPageIndex(0);
+                }
               }}
             >
               <SelectTrigger className="w-fit" size="sm">

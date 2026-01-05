@@ -1,75 +1,90 @@
-// components/layout/sidebar-secondary.tsx - DYNAMIC WITH MENU SWITCHING
+
+// ==================== components/layout/sidebar-secondary.tsx ====================
 import { SidebarSearch } from "./sidebar-search";
 import { Badge } from "@/components/ui/badge";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect, useCallback, memo } from "react";
-import {
-  ChevronRight, ShieldAlertIcon, Shield, Key, Users, Menu as MenuIcon,
-  ShieldCheck, UserCheck, LayoutDashboard, LockIcon, Settings,
-  ChartPie, Building2, Package, FolderKanban, MessageSquare, Brain
-} from "lucide-react";
+import { ChevronRight, ShieldAlertIcon, LockIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { usePermissionContext } from "@/contexts/permission-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLayout } from "./context";
+import * as LucideIcons from "lucide-react";
+import { MENU_STRUCTURE } from "@/lib/api/menu-structure";
 
-const ICON_MAP: Record<string, any> = {
-  Shield, Key, Users, Menu: MenuIcon, ShieldCheck, UserCheck, LayoutDashboard,
-  Settings, ChartPie, Building2, Package, FolderKanban, MessageSquare, Brain
-};
+const ICON_MAP: Record<string, any> = LucideIcons;
 
-// Define all menu structures for different sections
-const MENU_STRUCTURES: Record<string, any[]> = {
+// Helper function to check if a path is active or a parent of active path
+const isPathActiveOrParent = (itemPath: string, currentPath: string, children: any[]): boolean => {
+  // Skip if item path is empty or invalid
+  if (!itemPath || itemPath === '' || itemPath === '#') {
+    // For items without path, check children
+    if (children && children.length > 0) {
+      return children.some((child: any) => 
+        isPathActiveOrParent(child.path, currentPath, child.children || [])
+      );
+    }
+    return false;
+  }
   
-
-  'access-control': [
-    {
-      key: 'access-control.users',
-      title: 'User Management',
-      icon: 'Users',
-      children: [
-        {
-          key: 'access-control.users.list',
-          title: 'All Users',
-          icon: 'Users',
-          path: '/dashboard/access-control/users'
-        },
-      ],
-    },
-    {
-      key: 'access-control.permissions-management',
-      title: 'Permissions',
-      icon: 'Key',
-      children: [
-        {
-          key: 'access-control.permissions',
-          title: 'All Permissions',
-          icon: 'Key',
-          path: '/dashboard/access-control/permissions'
-        },
-        {
-          key: 'access-control.menu-permissions',
-          title: 'Menu Permissions',
-          icon: 'Menu',
-          path: '/dashboard/access-control/menu-permissions'
-        },
-      ],
-    },
-    {
-      key: 'access-control.roles',
-      title: 'Roles',
-      icon: 'Shield',
-      path: '/dashboard/access-control/roles',
-    },
-  ],
-
-   
+  // Direct match
+  if (currentPath === itemPath) return true;
+  
+  // Check if current path starts with item path (is a child route)
+  if (currentPath.startsWith(itemPath + '/')) return true;
+  
+  // Check if any children are active
+  if (children && children.length > 0) {
+    return children.some((child: any) => 
+      isPathActiveOrParent(child.path, currentPath, child.children || [])
+    );
+  }
+  
+  return false;
 };
 
 const MenuItem = memo(function MenuItem({ item, pathname, router, canAccessMenu, blockedMenus }: any) {
-  const [isOpen, setIsOpen] = useState(false);
+  const accessibleChildren = useMemo(() => {
+    if (!item.children) return [];
+    return item.children.filter((child: any) => {
+      const hasAccess = canAccessMenu(child.key);
+      const shouldShow = hasAccess || child.is_show_with_lock_if_no_access;
+      return shouldShow;
+    });
+  }, [item.children, canAccessMenu]);
+
+  const hasSubmenu = accessibleChildren.length > 0;
+  
+  // Check if this item or any of its children are active
+  const isActiveOrParent = useMemo(() => 
+    isPathActiveOrParent(item.path, pathname, accessibleChildren),
+    [item.path, pathname, accessibleChildren]
+  );
+
+  // Initialize isOpen based on whether this menu contains the active route
+  const [isOpen, setIsOpen] = useState(() => {
+    if (!hasSubmenu) return false;
+    
+    // Check if any child path matches current pathname
+    const hasActiveChild = accessibleChildren.some((child: any) => {
+      if (pathname === child.path) return true;
+      if (child.path && pathname.startsWith(child.path + '/')) return true;
+      
+      // Check nested children recursively
+      if (child.children && child.children.length > 0) {
+        return child.children.some((nested: any) => {
+          if (pathname === nested.path) return true;
+          if (nested.path && pathname.startsWith(nested.path + '/')) return true;
+          return false;
+        });
+      }
+      return false;
+    });
+    
+    return hasActiveChild;
+  });
 
   const isBlocked = useCallback((menuKey: string) => {
     return blockedMenus.some((blocked: any) => {
@@ -89,44 +104,67 @@ const MenuItem = memo(function MenuItem({ item, pathname, router, canAccessMenu,
     return null;
   }, [blockedMenus]);
 
-  const accessibleChildren = useMemo(() => {
-    if (!item.children) return [];
-    return item.children.filter((child: any) =>
-      canAccessMenu(child.key) && !isBlocked(child.key)
-    );
-  }, [item.children, canAccessMenu, isBlocked]);
-
-  const hasSubmenu = accessibleChildren.length > 0;
   const isActive = pathname === item.path;
   const blocked = isBlocked(item.key);
   const blockReason = getBlockReason(item.key);
+  const hasAccess = canAccessMenu(item.key);
+  const shouldShow = hasAccess || item.is_show_with_lock_if_no_access;
 
+  // Open parent menu if it contains the active route on mount or path change
   useEffect(() => {
-    if (hasSubmenu && accessibleChildren.some((child: any) => pathname.startsWith(child.path))) {
-      setIsOpen(true);
+    if (hasSubmenu) {
+      // Check if any child path matches current pathname
+      const hasActiveChild = accessibleChildren.some((child: any) => {
+        if (pathname === child.path) return true;
+        if (child.path && pathname.startsWith(child.path + '/')) return true;
+        
+        // Check nested children recursively
+        if (child.children && child.children.length > 0) {
+          return child.children.some((nested: any) => {
+            if (pathname === nested.path) return true;
+            if (nested.path && pathname.startsWith(nested.path + '/')) return true;
+            return false;
+          });
+        }
+        return false;
+      });
+      
+      console.log('MenuItem:', item.title, 'hasActiveChild:', hasActiveChild, 'pathname:', pathname);
+      
+      if (hasActiveChild) {
+        setIsOpen(true);
+      }
     }
-  }, [pathname, hasSubmenu, accessibleChildren]);
+  }, [pathname, hasSubmenu, accessibleChildren, item.title]);
 
-  const IconComponent = ICON_MAP[item.icon] || Shield;
+  const IconComponent = ICON_MAP[item.icon] || LucideIcons.Shield;
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    if (blocked) {
+    if (blocked || !hasAccess) {
       router.push('/dashboard/errors/403');
       return;
     }
-    if (canAccessMenu(item.key)) {
+    if (hasSubmenu) {
+      setIsOpen((prev:any) => !prev);
+    } else {
       router.push(item.path);
     }
-  }, [blocked, canAccessMenu, item.key, item.path, router]);
+  }, [blocked, hasAccess, hasSubmenu, item.path, router]);
 
-  if (!canAccessMenu(item.key) && !hasSubmenu) return null;
+  if (!shouldShow) return null;
 
   if (hasSubmenu) {
     return (
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
-          <button className={cn("flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-normal transition-colors hover:bg-primary/10 hover:text-foreground text-foreground")}>
+          <button 
+            onClick={handleClick}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-normal transition-colors hover:bg-primary/10 hover:text-foreground text-foreground cursor-pointer",
+              isActiveOrParent && "font-medium"
+            )}
+          >
             <IconComponent className="size-4 shrink-0" />
             <span className="flex-1 text-left">{item.title}</span>
             <ChevronRight className={cn("size-4 shrink-0 transition-transform duration-200", isOpen && "rotate-90")} />
@@ -148,7 +186,7 @@ const MenuItem = memo(function MenuItem({ item, pathname, router, canAccessMenu,
     );
   }
 
-  if (blocked) {
+  if (blocked || !hasAccess) {
     return (
       <TooltipProvider>
         <Tooltip>
@@ -174,7 +212,10 @@ const MenuItem = memo(function MenuItem({ item, pathname, router, canAccessMenu,
   return (
     <button
       onClick={handleClick}
-      className={cn("flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-normal transition-colors hover:bg-primary/10 hover:text-foreground", isActive ? "bg-primary/10 text-foreground font-medium" : "text-foreground")}
+      className={cn(
+        "flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm font-normal transition-colors hover:bg-primary/10 hover:text-foreground cursor-pointer",
+        isActive ? "bg-primary/10 text-foreground font-medium" : "text-foreground"
+      )}
     >
       <IconComponent className="size-4 shrink-0" />
       <span className="flex-1 text-left">{item.title}</span>
@@ -186,56 +227,40 @@ export function SidebarSecondary() {
   const pathname = usePathname();
   const router = useRouter();
   const { activeSecondaryMenu } = useLayout();
+  const { isLoading, canAccessMenu, blockedMenus } = usePermissionContext();
 
-  const {
-    isLoading,
-    canAccessMenu,
-    isSystemAdmin,
-    blockedMenus,
-  } = usePermissionContext();
-
-  // Get current menu structure based on active primary menu
   const currentMenuStructure = useMemo(() => {
-    return MENU_STRUCTURES[activeSecondaryMenu] || [];
-  }, [activeSecondaryMenu]);
+    const activeMenu = MENU_STRUCTURE.find((menu) => menu.key === activeSecondaryMenu);
+    console.log('📋 Secondary Sidebar - activeSecondaryMenu:', activeSecondaryMenu, '| found menu:', activeMenu?.title);
+    if (!activeMenu || !activeMenu.children) return [];
+    if (!canAccessMenu(activeMenu.key)) return [];
+    return activeMenu.children;
+  }, [activeSecondaryMenu, canAccessMenu]);
 
-  // Build accessible menu structure
   const accessibleMenuStructure = useMemo(() => {
     if (isLoading) return [];
 
     return currentMenuStructure.map(menu => {
-      const accessibleChildren = menu.children?.filter((child: any) =>
-        canAccessMenu(child.key)
-      ) || [];
+      const accessibleChildren = ((menu as any).children || []).filter((child: any) => {
+        const hasAccess = canAccessMenu(child.key);
+        const shouldShow = hasAccess || child.is_show_with_lock_if_no_access;
+        return shouldShow;
+      });
 
       const hasParentAccess = canAccessMenu(menu.key);
+      const shouldShowParent = hasParentAccess || (menu as any).is_show_with_lock_if_no_access;
 
-      if (hasParentAccess || accessibleChildren.length > 0) {
+      if (shouldShowParent || accessibleChildren.length > 0) {
         return { ...menu, children: accessibleChildren };
       }
       return null;
     }).filter(Boolean);
   }, [isLoading, canAccessMenu, currentMenuStructure]);
 
-  // Get section title
-  const sectionTitle = useMemo(() => {
-    const titles: Record<string, string> = {
-      'dashboard': 'Dashboards',
-      'access-control': 'Access Control',
-      'apps': 'Applications',
-      'ai-apps': 'AI Tools',
-      'pages': 'Pages',
-      'chat': 'Messages',
-    };
-    return titles[activeSecondaryMenu] || 'Menu';
-  }, [activeSecondaryMenu]);
-
-  // Hide sidebar for chat
-  if (activeSecondaryMenu === 'chat') {
+  if (activeSecondaryMenu === 'dashboard.chat.access') {
     return null;
   }
 
-  // Show loading skeleton
   if (isLoading) {
     return (
       <div className="flex h-full flex-1 flex-col overflow-hidden">
@@ -250,7 +275,6 @@ export function SidebarSecondary() {
     );
   }
 
-  // Show empty state if no accessible menus
   if (accessibleMenuStructure.length === 0) {
     return (
       <div className="flex h-full flex-1 flex-col overflow-hidden">
@@ -266,16 +290,11 @@ export function SidebarSecondary() {
     );
   }
 
-  // Render menu
   return (
     <div className="flex h-full flex-1 flex-col overflow-hidden">
       <div className="shrink-0 pt-2.5"><SidebarSearch /></div>
       <div className="flex-1 overflow-y-auto py-2.5">
         <div className="space-y-1 px-2.5">
-          <div className="text-muted-foreground mb-3 px-2.5 text-xs font-normal flex items-center justify-between">
-            {/* <span>{sectionTitle}</span>
-            {isSystemAdmin && <Badge variant="outline" size="sm" className="text-[10px]">Admin</Badge>} */}
-          </div>
           <div className="space-y-1">
             {accessibleMenuStructure.map((item: any) => (
               <MenuItem

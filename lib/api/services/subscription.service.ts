@@ -78,6 +78,20 @@ export interface ChangeSubscriptionPayload {
   billingCycle: 'monthly' | 'yearly' | 'lifetime';
   changeReason?: string;
   effectiveDate?: string;
+  paymentData?: PaymentMethodPayload;
+}
+
+export interface PaymentMethodPayload {
+  provider: 'stripe' | 'paypal' | 'razorpay' | 'googlepay';
+  methodType: 'credit_card' | 'digital_wallet';
+  paypalEmail?: string;
+  cardNumber?: string;
+  cardHolderName?: string;
+  cardExpMonth?: number;
+  cardExpYear?: number;
+  cardCvv?: string;
+  isDefault?: boolean;
+  autoRenewEnabled?: boolean;
 }
 
 export interface CancelSubscriptionPayload {
@@ -88,7 +102,78 @@ export interface CancelSubscriptionPayload {
 export interface ListPlansQuery {
   planTier?: 'free' | 'basic' | 'pro' | 'enterprise' | 'custom';
   includeInactive?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
+
+export interface CreateFeaturePayload {
+  subscription_id: number;
+  feature_price?: number;
+  restricted_to?: string;
+  name: string;
+}
+
+export interface UpdateFeaturePayload {
+  id: number;
+  subscription_id?: number;
+  feature_price?: number;
+  restricted_to?: string;
+  name?: string;
+}
+
+export interface ListFeaturesQuery {
+  subscription_id?: number;
+  name?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
+
+export interface CreateFeaturePermissionPayload {
+  subscription_id: number;
+  feature_id: number;
+  permission_id: number[];
+  permission_price?: number;
+  restricted_to?: string;
+  name: string;
+}
+
+export interface UpdateFeaturePermissionPayload {
+  id: number;
+  subscription_id?: number;
+  feature_id?: number;
+  permission_id?: number[];
+  permission_price?: number;
+  restricted_to?: string;
+  name?: string;
+}
+
+export interface ListFeaturePermissionsQuery {
+  subscription_id?: number;
+  feature_id?: number;
+  permission_id?: number;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
+export interface SubscriptionPlanForSelect {
+  id: number;
+  plan_name: string;
+  plan_slug: string;
+  plan_type: string;
+  plan_tier: string;
+}
+export interface FeatureForSelect {
+  id: number;
+  subscription_id: number;
+  name: string;
+  feature_price: number | null;
+}
+
 
 export class SubscriptionService {
   // Plans Management
@@ -108,17 +193,15 @@ export class SubscriptionService {
     return encryptedApiClient.put(API_ENDPOINTS.SUBSCRIPTIONS.PLANS.UPDATE(id), payload);
   }
 
+  static async togglePlanStatus(id: number, isActive: boolean) {
+    return encryptedApiClient.put(`${API_ENDPOINTS.SUBSCRIPTIONS.PLANS.UPDATE(id)}/toggle-status`, { isActive });
+  }
+
   static async deletePlan(id: number) {
     return encryptedApiClient.delete(API_ENDPOINTS.SUBSCRIPTIONS.PLANS.DELETE(id));
   }
-
-  // Custom Plans
-  static async createCustomPlan(payload: CreateCustomPlanPayload) {
-    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.CUSTOM_PLANS.CREATE, payload);
-  }
-
-  static async getCustomPlan(tenantId: number) {
-    return encryptedApiClient.get(API_ENDPOINTS.SUBSCRIPTIONS.CUSTOM_PLANS.GET(tenantId));
+  static async getAllActiveSubscriptionsForSelect() {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.PLANS.GET_ALL_ACTIVE_FOR_SELECT);
   }
 
   // Subscription Management
@@ -157,5 +240,87 @@ export class SubscriptionService {
 
   static async getSubscriptionStatus() {
     return encryptedApiClient.get(API_ENDPOINTS.SUBSCRIPTIONS.STATUS);
+  }
+
+  // Payment Methods
+  static async getPaymentMethods() {
+    return encryptedApiClient.get(API_ENDPOINTS.SUBSCRIPTIONS.PAYMENT_METHODS.LIST);
+  }
+
+  static async addPaymentMethod(payload: PaymentMethodPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.PAYMENT_METHODS.ADD, payload);
+  }
+
+  static async deletePaymentMethod(id: number) {
+    return encryptedApiClient.delete(API_ENDPOINTS.SUBSCRIPTIONS.PAYMENT_METHODS.DELETE(id));
+  }
+
+  // Offers
+  static async getAvailableOffers(params?: { page?: number; pageSize?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
+    return encryptedApiClient.get(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.LIST, { params });
+  }
+
+  static async getOfferById(id: number) {
+    return encryptedApiClient.get(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.GET(id));
+  }
+
+  static async createOffer(payload: any) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.CREATE, payload);
+  }
+
+  static async updateOffer(id: number, payload: any) {
+    return encryptedApiClient.put(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.UPDATE(id), payload);
+  }
+
+  static async deleteOffer(id: number) {
+    return encryptedApiClient.delete(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.DELETE(id));
+  }
+
+  static async applyOffer(offerCode: string) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.OFFERS.APPLY, { offerCode });
+  }
+
+  static async listFeatures(query?: ListFeaturesQuery) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.LIST, query);
+  }
+
+  static async getFeatureById(id: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.GET_BY_ID, { id });
+  }
+
+  static async createFeature(payload: CreateFeaturePayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.CREATE, payload);
+  }
+
+  static async updateFeature(payload: UpdateFeaturePayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.UPDATE, payload);
+  }
+
+  static async deleteFeature(id: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.DELETE, { id });
+  }
+
+  // Subscription Feature Permissions
+  static async listFeaturePermissions(query?: ListFeaturePermissionsQuery) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURE_PERMISSIONS.LIST, query);
+  }
+
+  static async getFeaturePermissionById(id: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURE_PERMISSIONS.GET_BY_ID, { id });
+  }
+
+  static async createFeaturePermission(payload: CreateFeaturePermissionPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURE_PERMISSIONS.CREATE, payload);
+  }
+
+  static async updateFeaturePermission(payload: UpdateFeaturePermissionPayload) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURE_PERMISSIONS.UPDATE, payload);
+  }
+
+  static async deleteFeaturePermission(id: number) {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURE_PERMISSIONS.DELETE, { id });
+  }
+  static async getAllActiveFeaturesForSelect() {
+    return encryptedApiClient.post(API_ENDPOINTS.SUBSCRIPTIONS.FEATURES.GET_ALL_ACTIVE_FOR_SELECT);
   }
 }

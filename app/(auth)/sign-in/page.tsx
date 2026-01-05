@@ -64,7 +64,11 @@ export default function Page() {
     }
   }, [authError]);
 
- 
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -93,8 +97,7 @@ export default function Page() {
       dispatch(clearError());
       await dispatch(login(data)).unwrap();
     } catch (err: any) {
-      console.error("Login error:", err);
-      // Error is already handled by Redux and displayed
+      // Error is already handled by Redux and displayed via toast
     }
   };
 
@@ -109,7 +112,7 @@ export default function Page() {
         <CardHeader className="text-center pb-2 space-y-0.5">
           <div className="inline-flex items-center gap-2 mb-0 justify-center pr-3">
             <img
-              src="/fluera_new_logo.png"
+              src="/fluera-logo.svg"
               alt="Fluera logo"
               className="h-9 w-30"
             />

@@ -154,7 +154,7 @@ export default function UsersPage() {
         }
       })
     ).unwrap()
-      .then((response:any) => {
+      .then((response: any) => {
         console.log('✅ Members fetched successfully:', response);
         console.log('✅ Response type:', typeof response);
         console.log('✅ Response is array?:', Array.isArray(response));
@@ -435,9 +435,9 @@ export default function UsersPage() {
   const table = useReactTable({
     columns,
     data: tenantMembers || [],
-    state: { 
+    state: {
       pagination,
-      sorting 
+      sorting
     },
     pageCount: membersPagination?.totalPages || 0,
     onPaginationChange: setPagination,
@@ -456,21 +456,20 @@ export default function UsersPage() {
     <div className="flex flex-col gap-4">
       <ProtectedBreadcrumb
         items={[
-          { label: "Access Control", menuKey: "access-control", href: "/dashboard/access-control" },
           {
             label: "Users",
-            menuKey: "access-control.users",
+            menuKey: "dashboard.access-control.users",
             href: "/dashboard/access-control/users",
             isCurrent: true
           }
         ]}
       />
-      <DataGrid 
-        table={table} 
-        recordCount={membersPagination?.totalCount || 0} 
+      <DataGrid
+        table={table}
+        recordCount={membersPagination?.totalCount || 0}
         isLoading={isLoadingMembers}
       >
-        <Card>
+        <Card className="py-4 gap-3">
           <CardHeader className="px-4 sm:px-4">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:gap-3">
@@ -514,16 +513,13 @@ export default function UsersPage() {
                       />
                       <span>Refresh</span>
                     </Button>
-
-                    <IfHasAccess menuKey="access-control.users">
-                      <Button
-                        onClick={() => setAddUserDialogOpen(true)}
-                        disabled={isLoadingMembers}
-                        className="xs:w-auto flex w-full items-center gap-2">
-                        <Plus className="h-4 w-4 flex-shrink-0" />
-                        <span>Add User</span>
-                      </Button>
-                    </IfHasAccess>
+                    <Button
+                      onClick={() => setAddUserDialogOpen(true)}
+                      disabled={isLoadingMembers}
+                      className="xs:w-auto flex w-full items-center gap-2">
+                      <Plus className="h-4 w-4 flex-shrink-0" />
+                      <span>Add User</span>
+                    </Button>
                   </div>
                 </div>
               </div>

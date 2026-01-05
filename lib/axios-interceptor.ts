@@ -1,7 +1,6 @@
 // lib/axios-interceptor.ts
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { AuthService } from './api';
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -110,7 +109,6 @@ apiClient.interceptors.response.use(
       processQueue(refreshError, null);
       
       Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
       Cookies.remove('user');
       
       window.location.href = '/login';

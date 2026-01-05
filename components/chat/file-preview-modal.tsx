@@ -67,15 +67,7 @@ export function FilePreviewModal({
 
   useEffect(() => {
     if (open && currentFile) {
-      console.log('🔵 [FILE-PREVIEW-MODAL] Modal opened with file:', {
-        id: currentFile.id,
-        name: currentFile.name,
-        url: currentFile.url,
-        thumbnailUrl: currentFile.thumbnailUrl,
-        mimeType: currentFile.mimeType,
-        hasUrl: !!currentFile.url,
-        needsFetch: !currentFile.url && !!currentFile.id
-      });
+   
 
       setZoom(1);
       setRotation(0);
@@ -85,7 +77,6 @@ export function FilePreviewModal({
       
       // Only fetch signed URL if url field is not present
       if (!currentFile.url && currentFile.id && !signedUrls[currentFile.id] && !urlFetchErrors[currentFile.id]) {
-        console.log('🔵 [FILE-PREVIEW-MODAL] Fetching signed URL on mount for:', currentFile.id);
         fetchSignedUrl(currentFile.id);
       } else {
         console.log('✅ [FILE-PREVIEW-MODAL] Skipping fetch - URL already available or cached');
@@ -96,7 +87,6 @@ export function FilePreviewModal({
 
   const fetchSignedUrl = async (fileId: number) => {
     try {
-      console.log('🔵 [FILE-PREVIEW-MODAL] fetchSignedUrl called for:', fileId);
       setUrlFetchErrors(prev => ({ ...prev, [fileId]: false }));
       
       // Check cache first
@@ -122,32 +112,20 @@ export function FilePreviewModal({
   };
 
   const getFileUrl = (file: any) => {
-    console.log('🔵 [FILE-PREVIEW-MODAL] getFileUrl called:', {
-      fileId: file.id,
-      fileName: file.name,
-      hasDirectUrl: !!file.url,
-      directUrl: file.url,
-      hasSignedUrl: !!(file.id && signedUrls[file.id]),
-      signedUrl: file.id ? signedUrls[file.id] : null,
-      hasThumbnail: !!file.thumbnailUrl,
-      thumbnailUrl: file.thumbnailUrl
-    });
+     
 
     // Use the url field from backend (already signed)
     if (file.url) {
-      console.log('✅ [FILE-PREVIEW-MODAL] Using direct URL from backend:', file.url);
       return file.url;
     }
     
     // Fallback to fetched signed URL
     if (file.id && signedUrls[file.id]) {
-      console.log('✅ [FILE-PREVIEW-MODAL] Using fetched signed URL:', signedUrls[file.id]);
       return signedUrls[file.id];
     }
     
     // Last resort: thumbnail
     if (file.thumbnailUrl) {
-      console.log('⚠️ [FILE-PREVIEW-MODAL] Falling back to thumbnail:', file.thumbnailUrl);
       return file.thumbnailUrl;
     }
     
