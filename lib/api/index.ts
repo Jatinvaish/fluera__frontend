@@ -7,4 +7,5 @@ export {
 export { SystemConfigService } from './services/system-config-service';
 export { encryptedApiClient } from './encrypted-client';
 export { RbacService } from './services/rbac-service';
-export { ProfileService, type CreatorProfile, type BrandProfile, type AgencyProfile } from './services/profile-service'; 
+export { ProfileService, type CreatorProfile, type BrandProfile, type AgencyProfile } from './services/profile-service';
+export { SocialPlatformService, type SocialPlatform, type ConnectedAccount, type PlatformStats } from './services/social-platform-service'; 

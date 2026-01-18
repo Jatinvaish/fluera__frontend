@@ -20,6 +20,7 @@ import {
   updateAgencyProfile,
   updateProfileField,
 } from "@/store/slices/profileSlice";
+import type { CreatorProfile, BrandProfile, AgencyProfile } from "@/lib/api";
 
 export default function ProfileSettingsPage() {
   const params = useParams();
@@ -57,11 +58,11 @@ export default function ProfileSettingsPage() {
 
     try {
       if (slug === "creator") {
-        await dispatch(updateCreatorProfile(profile)).unwrap();
+        await dispatch(updateCreatorProfile(profile as CreatorProfile)).unwrap();
       } else if (slug === "brand") {
-        await dispatch(updateBrandProfile(profile)).unwrap();
+        await dispatch(updateBrandProfile(profile as BrandProfile)).unwrap();
       } else if (slug === "agency") {
-        await dispatch(updateAgencyProfile(profile)).unwrap();
+        await dispatch(updateAgencyProfile(profile as AgencyProfile)).unwrap();
       }
       toast({ title: "Profile updated successfully" });
     } catch (error: any) {

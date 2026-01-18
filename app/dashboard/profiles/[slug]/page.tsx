@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Share2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   fetchCreatorProfile,
@@ -21,6 +21,7 @@ import {
   updateAgencyProfile,
   updateProfileField,
 } from "@/store/slices/profileSlice";
+import type { CreatorProfile, BrandProfile, AgencyProfile } from "@/lib/api";
 
 export default function ProfileSettingsPage() {
   const params = useParams();
@@ -58,11 +59,11 @@ export default function ProfileSettingsPage() {
 
     try {
       if (slug === "creator") {
-        await dispatch(updateCreatorProfile(profile)).unwrap();
+        await dispatch(updateCreatorProfile(profile as CreatorProfile)).unwrap();
       } else if (slug === "brand") {
-        await dispatch(updateBrandProfile(profile)).unwrap();
+        await dispatch(updateBrandProfile(profile as BrandProfile)).unwrap();
       } else if (slug === "agency") {
-        await dispatch(updateAgencyProfile(profile)).unwrap();
+        await dispatch(updateAgencyProfile(profile as AgencyProfile)).unwrap();
       }
       toast({ title: "Profile updated successfully" });
     } catch (error: any) {
@@ -89,6 +90,16 @@ export default function ProfileSettingsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h1 className="text-xl font-semibold">Profile Settings</h1>
             <div className="flex gap-2">
+              {slug === "creator" && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => router.push('/dashboard/social-platforms')}
+                >
+                  <Share2 className="mr-2 h-4 w-4" />
+                  Connect Social Platforms
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => router.back()}>Cancel</Button>
               <Button size="sm" onClick={handleSave} disabled={saving}>
                 {saving && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}

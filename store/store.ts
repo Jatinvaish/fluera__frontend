@@ -9,6 +9,7 @@ import tenantReducer from './slices/tenantSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
 import adminSubscriptionReducer from './slices/adminSubscriptionSlice';
 import profileReducer from './slices/profileSlice';
+import socialPlatformReducer from './slices/socialPlatformSlice';
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     subscription: subscriptionReducer,
     adminSubscription: adminSubscriptionReducer,
     profile: profileReducer,
+    socialPlatform: socialPlatformReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

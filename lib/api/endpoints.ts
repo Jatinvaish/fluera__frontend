@@ -295,5 +295,22 @@ export const API_ENDPOINTS = {
     // ✅ NEW: Notifications
     NOTIFICATIONS_LIST: "/collaboration/notifications/list",
     NOTIFICATION_MARK_READ: "/collaboration/notifications/:id/mark-read",
+  },
+
+  // ==================== SOCIAL PLATFORMS ====================
+  SOCIAL_PLATFORMS: {
+    SUPPORTED: "/social-platforms/supported",
+    CONNECT: (platform: string) => `/social-platforms/connect/${platform}`,
+    ACCOUNTS: "/social-platforms/accounts",
+    SYNC: (accountId: number) => `/social-platforms/sync/${accountId}`,
+    DISCONNECT: (accountId: number) => `/social-platforms/disconnect/${accountId}`,
+    STATS: "/social-platforms/stats",
+    REAUTHENTICATE: (accountId: number) => `/social-platforms/reauthenticate/${accountId}`,
+    ANALYTICS: (accountId: number) => `/social-platforms/analytics/${accountId}`,
+    MANUAL: {
+      CREATE_ACCOUNT: "/social-platforms/accounts/manual",
+      UPDATE_ACCOUNT: (accountId: number) => `/social-platforms/accounts/${accountId}/manual`,
+      CREATE_CONTENT: (accountId: number) => `/social-platforms/accounts/${accountId}/content/manual`
+    }
   }
 } as const;

@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EmojiPopover } from "./popovers/emoji-popover";
 import tippy, { Instance as TippyInstance } from "tippy.js";
+import "tippy.js/dist/tippy.css";
 import { ChatService, FileUploadProgress } from "@/lib/api/services/chat-service";
 import toast from "react-hot-toast";
 import { MessageContent } from "./message-content";

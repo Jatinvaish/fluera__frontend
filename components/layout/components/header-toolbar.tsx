@@ -10,7 +10,8 @@ import {
   Sparkles,
   BadgeCheck,
   CreditCard,
-  ChevronRightIcon
+  ChevronRightIcon,
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +38,8 @@ import { toAbsoluteUrl } from "@/lib/helpers";
 import { ThemeCustomizerPanel } from "@/components/theme-customizer";
 import ThemeSwitch from "./theme-switch";
 import { NotificationDropdown } from "./NotificationDropdown";
+
+import { ConnectSocialPlatformsDialog } from "@/components/dialogbox/ConnectSocialPlatformsDialog";
 
 export function HeaderToolbar() {
   const { theme, setTheme } = useTheme();
@@ -90,6 +93,11 @@ export function HeaderToolbar() {
     return 'creator';
   };
 
+  const isCreator = () => {
+    const type = user?.userType || user?.user_type;
+    return type === 'creator';
+  };
+
   if (!mounted) return <div className="h-10 w-32" />;
 
   return (
@@ -130,6 +138,12 @@ export function HeaderToolbar() {
               <User />
               Profile Settings
             </DropdownMenuItem>
+            {isCreator() && (
+              <DropdownMenuItem onClick={() => router.push('/dashboard/social-platforms')}>
+                <Share2 />
+                Connect Social Platforms
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem>
               <BadgeCheck />
               Account

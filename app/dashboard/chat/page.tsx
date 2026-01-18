@@ -96,6 +96,8 @@ const ChatPage = () => {
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const isRestoringFromUrl = useRef(false);
+  const prevChannelIdRef = useRef<number | null>(null);
 
   // ==================== EFFECTS ====================
 
@@ -119,7 +121,8 @@ const ChatPage = () => {
   // Restore channel from URL
   useEffect(() => {
     const encryptedId = searchParams.get('id');
-    if (encryptedId && channels.length > 0 && !selectedChannel) {
+    if (encryptedId && channels.length > 0 && !selectedChannel && !isRestoringFromUrl.current) {
+      isRestoringFromUrl.current = true;
       const decryptedId = EncryptionService.decrypt(encryptedId);
       if (decryptedId) {
         const channel = channels.find(c => c.id === parseInt(decryptedId));
@@ -128,16 +131,23 @@ const ChatPage = () => {
           setActiveTab(channel.channel_type === ChannelType.DIRECT ? "chat" : "channels");
         }
       }
+      setTimeout(() => { isRestoringFromUrl.current = false; }, 100);
     }
-  }, [searchParams, channels, selectedChannel, dispatch]);
+  }, [searchParams, channels, dispatch]);
 
   // Update URL when channel changes
   useEffect(() => {
-    if (selectedChannel) {
-      const encryptedId = EncryptionService.encrypt(selectedChannel.id);
-      router.replace(`/dashboard/chat?id=${encryptedId}`, { scroll: false });
+    const currentChannelId = selectedChannel?.id ?? null;
+    if (currentChannelId !== prevChannelIdRef.current) {
+      prevChannelIdRef.current = currentChannelId;
+      if (currentChannelId) {
+        const encryptedId = EncryptionService.encrypt(currentChannelId);
+        router.replace(`/dashboard/chat?id=${encryptedId}`, { scroll: false });
+      } else {
+        router.replace('/dashboard/chat', { scroll: false });
+      }
     }
-  }, [selectedChannel?.id, router]);
+  });
 
   // ✅ UPDATED: Load Channel Data with mark all as read
   useEffect(() => {
